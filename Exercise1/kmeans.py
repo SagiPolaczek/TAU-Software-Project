@@ -6,7 +6,7 @@ def k_means(K, max_iter=200):
     # Read data from input to a list of datapoints
     data_points = read_data()
 
-    assert K < len(data_points)
+    assert K < len(data_points), "K must be smaller than N!"
 
     # Initialize clusters
     clusters = [[] for i in range(K)] # will create K empty clusters
@@ -99,15 +99,28 @@ def vectors_sum(v, u):
 
 # Read user inputs and call k_means function
 inputs = sys.argv
-K = int(sys.argv[1])
 
-assert K > 0
+assert len(inputs) == 2 or len(inputs) == 3, "The program can have only 2 or 3 arguments!"
+
+try:
+    K = int(inputs[1])
+except:
+    assert False, "Arguments must be a positive numbers!"
+
+assert K > 0, "K must be positive!"
+
+
 
 result = [[]]
-if len(sys.argv) == 2:          # call k_mean with default max_iter
+if len(inputs) == 2:          # call k_mean with default max_iter
     result = k_means(K)
-elif len(sys.argv) == 3:        # call k_mean with input max_iter
-    max_iter = int(sys.argv[2])
+elif len(inputs) == 3:        # call k_mean with input max_iter
+    try:
+        max_iter = int(inputs[2])
+    except:
+        assert False, "Arguments must be a positive numbers!"
+    
+    assert max_iter >= 0, "Max Iterations must be non-negative!"
     result = k_means(K, max_iter)
 
 # print result
@@ -117,4 +130,3 @@ for i in range(len(result)):
             print(format(result[i][j], '.4f'))
         else:
             print(format(result[i][j], '.4f'), end=",")
-
