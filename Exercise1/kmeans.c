@@ -11,17 +11,20 @@ struct InputData {
     int dim;
     int data_count;
     double *container;
-} typedef InputData;
+};
+typedef struct InputData InputData;
 
 struct CentroidsWrapper {
     double **centroids;
     double *container;
-} typedef CentroidsWrapper;
+};
+typedef struct CentroidsWrapper CentroidsWrapper;
 
 struct Cluster{
     double *vector_sum;
     int *count;
-} typedef Cluster;
+};
+typedef struct Cluster Cluster;
 
 /* Functions Decleration */ 
 InputData read_data();
@@ -109,6 +112,8 @@ int main(int argc, char *argv[])
     free(centroids);
     free(centroids_container);
     free(clusters);
+
+    return 0;
 }
 
 InputData read_data() {
