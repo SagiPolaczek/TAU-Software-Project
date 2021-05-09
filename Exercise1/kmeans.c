@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 
 
@@ -9,7 +10,13 @@ struct InputData {
     double **data;
     int dim;
     int data_count;
+    double *container;
 } typedef InputData;
+
+struct CentroidsWrapper {
+    double **centroids;
+    double *container;
+} typedef CentroidsWrapper;
 
 struct Cluster{
     double *vector_sum;
@@ -18,17 +25,18 @@ struct Cluster{
 
 /* Functions Decleration */ 
 InputData read_data();
-double **init_centroids(double **data_points, int K, int dim);
+CentroidsWrapper init_centroids(double **data_points, int K, int dim);
 Cluster *init_clusters(int K, int dim);
 int find_closest_centroid(double **centroids, double *data_point, int K, int d);
 double compute_distance(double *u, double *v, int dim);
 int update_centroids(double **centroids, Cluster *clusters, int K, int dim);
 void add_datapoint_to_cluster(Cluster *clusters, int cluster_index, double *data_point, int dim);
 void print_centroids(double **centroids, int K, int dim);
+int isPositiveNumber(char* arg);
 
 
 
-
+/* Main Function */
 int main(int argc, char *argv[]) 
 {
     /* Variables Declerations */
@@ -38,16 +46,24 @@ int main(int argc, char *argv[])
     int seen_changes, count_iter, cluster_index;
     double **data_points, **centroids;
     double *data_point;
+    double *data_container, *centroids_container;
     InputData input_data;
+    CentroidsWrapper centroids_wrapper;
     Cluster *clusters;
 
     /* Manage Input */
+    assert((argc == 2 || argc == 3) && "The program can have only 2 or 3 arguments!");
+    
+    assert(isPositiveNumber(argv[1]) && "Arguments must be a positive numbers!");
     K = atoi(argv[1]);
-    assert(K > 0);
+    assert(K > 0 && "K must be positive!");
+    
     
     max_iter = 200;
     if (argc == 3) {
+        assert(isPositiveNumber(argv[2]) && "Arguments must be a positive numbers!");
         max_iter = atoi(argv[2]);
+        assert(max_iter >= 0 && "Max Iterations must be non-negative!");
     }
 
     /* Read data to a 2-Dimentional matrix () */
@@ -56,12 +72,16 @@ int main(int argc, char *argv[])
     data_points = input_data.data;
     dim = input_data.dim;
     data_count = input_data.data_count;
+    data_container = input_data.container;
     
     /* The algorithm required K < N */ 
-    assert(K < data_count);
+    assert(K < data_count && "K must be smaller than N!");
 
     /* Initalize centroids and clusters*/
-    centroids = init_centroids(data_points, K, dim);
+    centroids_wrapper = init_centroids(data_points, K, dim);
+    centroids = centroids_wrapper.centroids;
+    centroids_container = centroids_wrapper.container;
+
     clusters = init_clusters(K, dim);
 
     /* Main Algorithm's Loop */
@@ -83,7 +103,12 @@ int main(int argc, char *argv[])
     /* Print centroids */
     print_centroids(centroids, K, dim);
 
-
+    /* Free memory */
+    free(data_points);
+    free(data_container);
+    free(centroids);
+    free(centroids_container);
+    free(clusters);
 }
 
 InputData read_data() {
@@ -138,15 +163,17 @@ InputData read_data() {
     data.data_count = data_count;
     data.dim = dim;
     data.data = data_points;
+    data.container = p;
 
     return data;
 }
 
-double **init_centroids(double **data_points, int K, int dim){
+CentroidsWrapper init_centroids(double **data_points, int K, int dim){
     /* Variables Declerations */
     double *p;
     double **centroids;
     int i, j;
+    CentroidsWrapper wrapper;
 
     /* Allocate space and define centroids */
     p = calloc((K * dim), sizeof(double));
@@ -166,7 +193,10 @@ double **init_centroids(double **data_points, int K, int dim){
         }
     }
 
-    return centroids;
+    wrapper.centroids = centroids;
+    wrapper.container = p;
+
+    return wrapper;
 }
 
 Cluster *init_clusters(int K, int dim) {
@@ -186,7 +216,7 @@ Cluster *init_clusters(int K, int dim) {
         assert(array != NULL);
         
         /* Allocate pointer to count as a singleton */
-        count = calloc(1, sizeof(double));
+        count = calloc(1, sizeof(int));
         assert(count != NULL);
 
         /* Attach */
@@ -310,4 +340,16 @@ void print_centroids(double **centroids, int K, int dim) {
         printf("\n");
         
     }
+}
+
+int isPositiveNumber(char* arg) {
+    int i, n;
+    n = strlen(arg);
+    for (i = 0; i < n; i++) {
+        /* Check if arg[i] in {0,...,9} by comparing ASCII values */
+        if (arg[i] < 48 || arg[i] > 57) {
+            return 0;
+        }
+    }
+    return 1;
 }
