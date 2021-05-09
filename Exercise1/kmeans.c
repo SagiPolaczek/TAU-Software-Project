@@ -5,7 +5,7 @@
 
 
 
-/* Structures Declerations */
+/* Structures Declarations */
 struct InputData {
     double **data;
     int dim;
@@ -26,7 +26,7 @@ struct Cluster{
 };
 typedef struct Cluster Cluster;
 
-/* Functions Decleration */ 
+/* Functions Declarations */ 
 InputData read_data();
 CentroidsWrapper init_centroids(double **data_points, int K, int dim);
 Cluster *init_clusters(int K, int dim);
@@ -42,7 +42,7 @@ int isPositiveNumber(char* arg);
 /* Main Function */
 int main(int argc, char *argv[]) 
 {
-    /* Variables Declerations */
+    /* Variables Declarations */
     int K, max_iter;
     int data_count, dim = 0;
     int i;
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 }
 
 InputData read_data() {
-    /* Variables Declerations */
+    /* Variables Declarations */
     InputData data;
     double value;
     int data_count = 0, dim = 0;
@@ -174,7 +174,7 @@ InputData read_data() {
 }
 
 CentroidsWrapper init_centroids(double **data_points, int K, int dim){
-    /* Variables Declerations */
+    /* Variables Declarations */
     double *p;
     double **centroids;
     int i, j;
@@ -205,7 +205,7 @@ CentroidsWrapper init_centroids(double **data_points, int K, int dim){
 }
 
 Cluster *init_clusters(int K, int dim) {
-    /* Variables Declerations */
+    /* Variables Declarations */
     Cluster *clusters;
     int i;
     int *count;
@@ -233,7 +233,7 @@ Cluster *init_clusters(int K, int dim) {
 }
 
 int find_closest_centroid(double **centroids, double *data_point, int K, int dim){
-    /* Variables Declerations */
+    /* Variables Declarations */
     double min_distance;
     double curr_distance = 0;
     int i ,min_index = 0;
@@ -254,7 +254,7 @@ int find_closest_centroid(double **centroids, double *data_point, int K, int dim
 
 
 double compute_distance(double *u, double *v, int dim) {
-    /* Variables Declerations */
+    /* Variables Declarations */
     double distance = 0;
     int i = 0;
 
@@ -268,7 +268,7 @@ double compute_distance(double *u, double *v, int dim) {
 
 
 int update_centroids(double **centroids, Cluster *clusters, int K, int dim) {  
-    /* Variable Declerations */  
+    /* Variable Declarations */  
     Cluster cluster;
     double *cluster_vector;
     int cluster_count;
@@ -305,7 +305,7 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim) {
 
 void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
                                          double *data_point, int dim){
-    /* Variables Declerations */
+    /* Variables Declarations */
     Cluster cluster;
     double *cluster_vector;
     int i;
@@ -324,7 +324,7 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
 }
 
 void print_centroids(double **centroids, int K, int dim) {
-    /* Variables Declerations */
+    /* Variables Declarations */
     double *centroid;
     double data_point;
     int i, j;
@@ -348,7 +348,9 @@ void print_centroids(double **centroids, int K, int dim) {
 }
 
 int isPositiveNumber(char* arg) {
+    /* Variables Declarations */
     int i, n;
+    
     n = strlen(arg);
     for (i = 0; i < n; i++) {
         /* Check if arg[i] in {0,...,9} by comparing ASCII values */
