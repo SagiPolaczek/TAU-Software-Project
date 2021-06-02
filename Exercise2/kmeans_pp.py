@@ -4,9 +4,6 @@ import numpy as np
 import mykmeanssp as km
 
 
-
-
-
 def combine_inputs(input_1, input_2):
     # Read data
     data_1 = pd.read_csv(input_1, header=None)
@@ -14,6 +11,8 @@ def combine_inputs(input_1, input_2):
 
     # Merge
     data = pd.merge(data_1, data_2, on=0)
+    data.set_index(0, inplace=True)
+
 
     return data
 
@@ -22,16 +21,16 @@ def combine_inputs(input_1, input_2):
 def init_centroids(data, K):
     N, d = data.shape
 
-    centroids = [[0 for i in range(d)] for i in range(K+1)]
+    centroids = [[0 for i in range(d)] for i in range(K)]
     centroids_indices = [0 for i in range(K)]
     
     # Select m_1 randomly from x_1 -> x_N
     np.random.seed(0)
-    random_idx = np.random.randint(N)+1
+    random_idx = np.random.choice(N)
     centroids_indices[0] = random_idx
 
-    m_1 = data.loc[random_idx].tolist()[1:] #####
-    centroids[1] = m_1
+    m_1 = data.loc[random_idx].tolist() #####
+    centroids[0] = m_1
 
     D = [0 for i in range(N)] ##### maybe numpy?
     P = [0 for i in range(N)] ##### maybe numpy?
@@ -39,29 +38,31 @@ def init_centroids(data, K):
     while Z < K:
         # For each x_i
         for i in range(N):
-            x_i = data.loc[i].tolist()[1:]
+            x_i = data.loc[i].tolist()
             min_dis = float('inf')
-            for j in range(Z):
-                m_j  = centroids[j]
+            for j in range(1, Z+1):
+                m_j  = centroids[j-1]
                 curr_dis = compute_distance(x_i, m_j)
                 min_dis = min(curr_dis, min_dis)
 
             D[i] = min_dis
 
-        Z += 1
 
         sum_D = sum(D)
 
         for i in range(N):
             P[i] = (D[i] / sum_D)
-
+        
         new_index = np.random.choice(N, p=P)
-        centroids[Z] = data.loc[new_index].tolist()[1:]
-        centroids_indices[Z-1] = new_index
+        centroids[Z] = data.loc[new_index].tolist()
+        centroids_indices[Z] = new_index
 
 
+        Z += 1
 
-    return centroids[1:], centroids_indices
+        
+
+    return centroids, centroids_indices
 
 
 # Compute distance (Norm)^2 between a two points in R^d
@@ -111,16 +112,6 @@ data_points = data.values.tolist()
 assert K < N, "K must be smaller than N!"
 
 initial_centroids, centroids_indices = init_centroids(data, K)
-
-
-"""
-TEST
-input_1 = "input_1_db_1.txt"
-input_2 = "input_1_db_2.txt"
-data = combine_inputs(input_1, input_2)
-result = k_means_pp(data, 4)
-print(result)
-"""
 
 
 final_centroids = km.fit(initial_centroids, data_points, centroids_indices, N, d, K, max_iter)

@@ -65,7 +65,7 @@ static PyObject* fit(PyObject* self, PyObject* args)
     for (i = 0; i < K; i++) {
         py_vector = PyList_New(dim);
         for (j = 0; j < dim; j++) {
-            PyList_SetItem(py_vector, j, PyFloat_FromDouble(centroids[i][j]));
+            PyList_SetItem(py_vector, j, PyFloat_FromDouble(result[i][j]));
         }
         PyList_SetItem(py_result, i, py_vector);
     }
@@ -117,10 +117,11 @@ DataWrapper py_list_to_array(PyObject* py_list) {
 double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter) 
 {
     /* Variables Declarations */
-    int i;
+    int i, j;
     int seen_changes, count_iter, cluster_index;
     double *data_point;
     Cluster *clusters;
+    double *centroid;
         
     clusters = init_clusters(K, dim);
 
@@ -141,6 +142,24 @@ double** kmeans(double** data_points, double** centroids, int N, int dim, int K,
     }
     /* Free memory */
     free(clusters);
+
+    printf("\n");
+    for (i = 0; i < K; i++) {
+            centroid = centroids[i];
+            for (j = 0; j < dim; j++) {
+                
+                printf("%.4f", centroid[j]);
+                if (j < dim - 1) {
+                    /* seperate by comma adjecents data points */
+                    printf(",");
+                }
+            }
+            
+            /* seperate by new line adjecents centroids */
+            printf("\n");
+    }
+
+
 
     return centroids;
 }
