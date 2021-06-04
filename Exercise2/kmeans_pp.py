@@ -129,6 +129,7 @@ for i in range(len(centroids_indices)):
 for i in range(len(final_centroids)):
     for j in range(len(final_centroids[i])):
         if(j == len(final_centroids[i])-1):
-            print(format(final_centroids[i][j], '.4f'))
+            # print(format(final_centroids[i][j], '.4f'))
+            print(np.round(final_centroids[i][j], 4))
         else:
-            print(format(final_centroids[i][j], '.4f'), end=",")
+            print(np.round(final_centroids[i][j], 4), end=",")
