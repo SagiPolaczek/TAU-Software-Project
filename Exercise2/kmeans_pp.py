@@ -3,6 +3,11 @@ import pandas as pd
 import numpy as np
 import mykmeanssp as km
 
+import time
+
+start_time = time.time()
+
+
 
 def combine_inputs(input_1, input_2):
     # Read data
@@ -13,72 +18,66 @@ def combine_inputs(input_1, input_2):
     data = pd.merge(data_1, data_2, on=0)
     data.set_index(0, inplace=True)
 
+    # Return the data sorted.
+    return data.sort_index()
 
-    return data
 
-
-
+# Initialize centroids as described in the kmeanspp algorithm
 def init_centroids(data, K):
     N, d = data.shape
 
-    centroids = [[0 for i in range(d)] for i in range(K)]
+    # Convert the df into an numpy array (speed)
+    dataArr = data.to_numpy()
+
+    centroids = np.zeros((K, d))
     centroids_indices = [0 for i in range(K)]
     
-    # Select m_1 randomly from x_1 -> x_N
+    # Generate "Random" seed
     np.random.seed(0)
+
+    # Select m_1 randomly from x_1 -> x_N
     random_idx = np.random.choice(N)
+
+    # Set the 0 centroid
     centroids_indices[0] = random_idx
+    centroids[0] = dataArr[random_idx]
 
-    m_1 = data.loc[random_idx].tolist() #####
-    centroids[0] = m_1
+    # Init Distance & Probabilities arrays
+    D = np.zeros(N)
+    P = np.zeros(N)
 
-    D = [0 for i in range(N)] ##### maybe numpy?
-    P = [0 for i in range(N)] ##### maybe numpy?
     Z = 1
     while Z < K:
-        # For each x_i
+        # For each vector x_i, compute the minimum distance from a centroid
         for i in range(N):
-            x_i = data.loc[i].tolist()
+            x_i = dataArr[i]
             min_dis = float('inf')
-            for j in range(1, Z+1):
-                m_j  = centroids[j-1]
-                curr_dis = compute_distance(x_i, m_j)
-                min_dis = min(curr_dis, min_dis)
+            for j in range(Z):
+                m_j  = centroids[j]
+                # Computing distance between x_i and m_j
+                curr_dis = np.power((x_i - m_j), 2).sum()
+                if (curr_dis < min_dis):
+                    min_dis = curr_dis
 
             D[i] = min_dis
 
-
-        sum_D = sum(D)
-
-        for i in range(N):
-            P[i] = (D[i] / sum_D)
+        # P = Normalized D. Probabilities.
+        P = D / D.sum()
         
         new_index = np.random.choice(N, p=P)
-        centroids[Z] = data.loc[new_index].tolist()
+        centroids[Z] = dataArr[new_index]
         centroids_indices[Z] = new_index
 
 
         Z += 1
 
-        
-
-    return centroids, centroids_indices
+    return centroids.tolist() , centroids_indices
 
 
-# Compute distance (Norm)^2 between a two points in R^d
-def compute_distance(u, v):
-    sum = 0
-    for i in range(len(u)):
-        sum += (u[i]-v[i])**2
-    return sum
-
-
-
-
-# Reading user's Command Line arguments <3 
+# Reading user's Command Line arguments 
 inputs = sys.argv
 
-assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!" # SCEPTIC
+assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!"
 
 try:
     K = int(inputs[1])
@@ -104,7 +103,7 @@ if len(inputs) == 5:
     input_2 = inputs[4]
 
 
-# STAGE 2 - Combine both input files by INNER JOIN using the first column in each file as a key.
+# Combine both input files by INNER JOIN using the first column in each file as a key.
 data = combine_inputs(input_1, input_2)
 N, d = data.shape
 data_points = data.values.tolist()
@@ -116,7 +115,7 @@ initial_centroids, centroids_indices = init_centroids(data, K)
 
 final_centroids = km.fit(initial_centroids, data_points, centroids_indices, N, d, K, max_iter)
 
-# Print indices centroids !!!
+# Print indices centroids
 for i in range(len(centroids_indices)):
     if (i == len(centroids_indices) -1):
         print(centroids_indices[i])
@@ -133,3 +132,6 @@ for i in range(len(final_centroids)):
             print(np.round(final_centroids[i][j], 4))
         else:
             print(np.round(final_centroids[i][j], 4), end=",")
+
+
+print("\n \n--- %s seconds ---" % (time.time() - start_time))
