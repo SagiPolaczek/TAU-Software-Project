@@ -34,6 +34,7 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index, double *data
 /* Python <3 */
 static PyObject* fit(PyObject* self, PyObject* args)
 {
+    /* Variables Declarations */
     PyObject *py_centroids, *py_data, *py_indices;
     PyObject *py_result, *py_vector;
     double **centroids, **data_points, **result;
@@ -44,31 +45,36 @@ static PyObject* fit(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
         return NULL;
     
-
+    /* Validation */
     assert(PyList_Check(py_centroids));
     assert(PyList_Check(py_data));
     assert(PyList_Check(py_indices));
 
+    /* Convert Arrays from python to C */
     centroids_wrapper = py_list_to_array(py_centroids);
     data_points_wrapper = py_list_to_array(py_data);
 
     centroids = centroids_wrapper.pointers;
     data_points = data_points_wrapper.pointers;
 
+    /* Main Algorithm */
     result = kmeans(data_points, centroids, N, dim, K, max_iter);
 
-    free(centroids_wrapper.container);
-    free(data_points_wrapper.container);
 
     /* Convert a two double array into a PyObject */
     py_result = PyList_New(K);
     for (i = 0; i < K; i++) {
         py_vector = PyList_New(dim);
         for (j = 0; j < dim; j++) {
-            PyList_SetItem(py_vector, j, PyFloat_FromDouble(result[i][j]));
+            PyList_SET_ITEM(py_vector, j, PyFloat_FromDouble(result[i][j]));
         }
-        PyList_SetItem(py_result, i, py_vector);
+        PyList_SET_ITEM(py_result, i, py_vector);
     }
+
+    /* Free Memory */
+    free(centroids_wrapper.container);
+    free(data_points_wrapper.container);
+    free(result);
 
     return py_result;
 }
@@ -104,7 +110,7 @@ DataWrapper py_list_to_array(PyObject* py_list) {
             result[i][j] = PyFloat_AsDouble(value);
         }
     }
-
+    /* Pass the two array so we can free them both later */
     data_wrapper.container = p;
     data_wrapper.pointers = result;
     return data_wrapper;
@@ -117,11 +123,10 @@ DataWrapper py_list_to_array(PyObject* py_list) {
 double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter) 
 {
     /* Variables Declarations */
-    int i, j;
+    int i;
     int seen_changes, count_iter, cluster_index;
     double *data_point;
     Cluster *clusters;
-    double *centroid;
         
     clusters = init_clusters(K, dim);
 
@@ -140,26 +145,9 @@ double** kmeans(double** data_points, double** centroids, int N, int dim, int K,
 
         seen_changes = update_centroids(centroids, clusters, K, dim);
     }
+
     /* Free memory */
     free(clusters);
-
-    printf("\n");
-    for (i = 0; i < K; i++) {
-            centroid = centroids[i];
-            for (j = 0; j < dim; j++) {
-                
-                printf("%.4f", centroid[j]);
-                if (j < dim - 1) {
-                    /* seperate by comma adjecents data points */
-                    printf(",");
-                }
-            }
-            
-            /* seperate by new line adjecents centroids */
-            printf("\n");
-    }
-
-
 
     return centroids;
 }
@@ -283,6 +271,7 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
     cluster.count[0] += 1;
 }
 
+/* Python Staff */
 static PyMethodDef _methods[] = {
     {"fit", (PyCFunction)fit, METH_VARARGS, PyDoc_STR("Our SAVAGE Program")},
     {NULL, NULL, 0, NULL}   /* sentinel */
