@@ -3,11 +3,6 @@ import pandas as pd
 import numpy as np
 import mykmeanssp as km
 
-import time
-
-start_time = time.time()
-
-
 
 def combine_inputs(input_1, input_2):
     # Read data
@@ -18,14 +13,13 @@ def combine_inputs(input_1, input_2):
     data = pd.merge(data_1, data_2, on=0)
     data.set_index(0, inplace=True)
 
-    # Return the data sorted.
+    # Return the data sorted.אבא
     return data.sort_index()
 
 
 # Initialize centroids as described in the kmeanspp algorithm
 def init_centroids(data, K):
     N, d = data.shape
-
     # Convert the df into an numpy array (speed)
     dataArr = data.to_numpy()
 
@@ -132,6 +126,3 @@ for i in range(len(final_centroids)):
             print(np.round(final_centroids[i][j], 4))
         else:
             print(np.round(final_centroids[i][j], 4), end=",")
-
-
-print("\n \n--- %s seconds ---" % (time.time() - start_time))
