@@ -1,6 +1,8 @@
 from sklearn.cluster import KMeans
 from sklearn.datasets import load_iris
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 
 # Load data from sklearn API
 data = load_iris().data
