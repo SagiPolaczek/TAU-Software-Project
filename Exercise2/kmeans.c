@@ -63,8 +63,10 @@ static PyObject* fit(PyObject* self, PyObject* args)
 
     /* Convert a two double array into a PyObject */
     py_result = PyList_New(K);
+    assert(py_result != NULL && "Problem in generating PyList object");
     for (i = 0; i < K; i++) {
         py_vector = PyList_New(dim);
+        assert(py_vector != NULL && "Problem in generating PyList object");
         for (j = 0; j < dim; j++) {
             PyList_SET_ITEM(py_vector, j, PyFloat_FromDouble(result[i][j]));
         }

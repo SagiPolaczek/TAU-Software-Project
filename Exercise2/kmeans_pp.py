@@ -13,7 +13,7 @@ def combine_inputs(input_1, input_2):
     data = pd.merge(data_1, data_2, on=0)
     data.set_index(0, inplace=True)
 
-    # Return the data sorted.אבא
+    # Return the data sorted
     return data.sort_index()
 
 
@@ -73,11 +73,9 @@ inputs = sys.argv
 
 assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!"
 
-try:
-    K = int(inputs[1])
-except:
-    assert False, "Arguments must be a positive numbers!"
+assert inputs[1].isnumeric(), "K must be an integer"
 
+K = int(inputs[1])
 assert K > 0, "K must be positive!"
 
 max_iter = 300
@@ -85,14 +83,11 @@ max_iter = 300
 input_1 = inputs[2]
 input_2 = inputs[3]
 
-if len(inputs) == 5:       
-    try:
-        max_iter = int(inputs[2])
-    except:
-        assert False, "Arguments must be a positive numbers!"
+if len(inputs) == 5:
+    assert inputs[2].isnumeric(), "max_iter must be an integer"
+    assert max_iter >= 0, "max_iter must be non-negative!"
 
-    assert max_iter >= 0, "Max Iterations must be non-negative!"
-
+    max_iter = int(inputs[2])
     input_1 = inputs[3]
     input_2 = inputs[4]
 
