@@ -117,6 +117,12 @@ DataWrapper py_list_to_array(PyObject* py_list) {
     data_wrapper.pointers = result;
     return data_wrapper;
 
+    /*
+     p == result[0]
+     free(result[0]); / == free(p)
+     free(result)
+    */
+
 }
 
 
