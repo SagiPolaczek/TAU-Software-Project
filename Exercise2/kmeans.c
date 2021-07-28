@@ -42,6 +42,9 @@ static PyObject* fit(PyObject* self, PyObject* args)
     int i, j;
     DataWrapper centroids_wrapper, data_points_wrapper;
 
+    const int i = 0; 
+    i = 5; 
+
     if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
         return NULL;
     

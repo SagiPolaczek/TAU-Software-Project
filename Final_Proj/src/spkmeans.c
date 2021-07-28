@@ -72,7 +72,6 @@ double **compute_wam(Graph *g) {
     return weights;
 }
 
-
 double compute_distance(Vector *vec1, Vector *vec2) {
     /* Variables Declarations */
     int i;
@@ -120,7 +119,6 @@ double compute_degree(double **weights, int v_idx, int n) {
 
     return deg;
 }
-
 
 double** compute_lnorm(Graph *g) {
     double *invsqrt_d, **res, *p;
@@ -184,4 +182,44 @@ void muilti_mat_vec(double **mat, double *vec, int n, double **res) {
             res[j][i] = vec[i] * mat[j][i];
         }
     } 
+}
+
+void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
+    int is_not_diag = 1;
+    int i, j;
+    double max_entry, curr_entry;
+    int max_row, max_col;
+    double theta, phi;
+    double c, t, s;
+
+    /* Initalize the Idendity Matrix */
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            eign_vecs[i][j] = (i == j);
+        }
+    }
+
+    
+    max_row = 0; max_col = 1; /* Assume n >= 2 */
+    max_entry = fabs(A[max_row][max_col]);
+    while(is_not_diag) {
+
+        /* Pivot - Find the maximum absolute value A_ij */
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                curr_entry = fabs(A[i][j]);
+                if ((i != j) && (curr_entry > max_entry)) {
+                    max_entry = curr_entry;
+                    max_row = i;
+                    max_col = j;
+                }
+            }
+        }
+
+        /* Obtain c,t */
+        phi = 0.5*atan2(-2*A[i][j],A[j][j] - A[i][i]);
+        s = sin(phi);
+        c = cos(phi);
+        
+    }
 }
