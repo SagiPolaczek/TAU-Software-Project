@@ -4,46 +4,13 @@
 #include <string.h>
 #include <math.h>
 
-
-/* Structures Declarations */
-struct Vector {
-    int dim;
-    double *values;
-} typedef Vector;
-
-struct Matrix {
-    int rows;
-    int cols;
-    double **values;
-} typedef Matrix;
-
-struct Graph {
-    Vector **vertices;
-    double **weights;
-    double *degrees;
-    int n, dim;
-} typedef Graph;
+#include "spkmeans.h"
 
 
+int main(int argc, char *argv[]) {
 
 
-
-/* Functions Declarations */
-double** compute_spk();
-double** compute_wam(Graph *g);
-double compute_distance(Vector *vec1, Vector *vec2m);
-double* compute_ddg(Graph *g);
-double compute_degree(double **weights, int v_idx, int n);
-double** compute_lnorm(Graph *g);
-double** compute_jacobi();
-static PyObject* fit(PyObject* self, PyObject* args);
-
-
-/* Python */
-
-
-/* C */
-double **compute_spk() {
+    printf("%d%s", argc, argv[0]);
     return 0;
 }
 
@@ -93,7 +60,7 @@ elaborate why we chose to represent the DDG with a vector instead of a matrix.
 and how it affects the other functions
 */
 double *compute_ddg(Graph *g) {
-    int i, j;
+    int i;
     double deg;
     double **weights = g -> weights;
     int n = g -> n;
@@ -153,6 +120,10 @@ double** compute_lnorm(Graph *g) {
 double* inverse_sqrt_vec(double *vector, int n) {
     double *res;
     int i;
+
+    /* Consider make it INPLACE */
+    res = calloc(n, sizeof(double*));
+    assert(res != NULL);
     
     for (i = 0; i < n; i++) {
         res[i] = 1 / (sqrt(vector[i]));
@@ -171,7 +142,7 @@ void multi_vec_mat(double *vec, double **mat, int n, double **res) {
     }
 }
 
-void muilti_mat_vec(double **mat, double *vec, int n, double **res) {
+void multi_mat_vec(double **mat, double *vec, int n, double **res) {
     int i, j;
 
     for (i = 0; i < n; i++) { 
@@ -186,13 +157,16 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
     int i, j, r;
     double max_entry, curr_entry;
     int max_row, max_col;
-    double theta, phi;
-    double c, t, s;
-    double const eps = 0.001;
+    double phi;
+    double c, s;
     double **A_tag;
     double *p;
     double s_sq, c_sq;
     double off_diff;
+    const int MAX_ITER = 100;
+    const double EPS = 0.001;
+    int iter_count;
+
 
     /* A_tag start as deep copy of A */
     p = calloc((n * n), sizeof(double));
@@ -213,6 +187,7 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
         }
     }
     
+    iter_count = 0;
     while(is_not_diag) {
         /* Pivot - Find the maximum absolute value A_ij */
         max_row = 0; max_col = 1; /* Assume n >= 2 */
@@ -270,8 +245,8 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
             off_diff += pow(A_tag[i][j], 2);
             off_diff -= pow(A[i][j], 2);
         }
-        
-        if (off_diff <= eps) {
+
+        if (off_diff <= EPS || iter_count > MAX_ITER) {
             is_not_diag = 0;
             break;
         }
@@ -287,7 +262,7 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
         A[j][j] = A_tag[j][j];
         A[i][j] = A_tag[i][j];
 
-
+        iter_count += 1;
     }
 
     /* Update Eigenvalues */
