@@ -26,9 +26,7 @@ struct Graph {
 
 
 
-
-
-/* Functions Declarations */
+/* Functions Declarations, will move to the 'spkmeans.h'*/
 double** compute_spk();
 double** compute_wam(Graph *g);
 double compute_distance(Vector *vec1, Vector *vec2m);
@@ -36,10 +34,7 @@ double* compute_ddg(Graph *g);
 double compute_degree(double **weights, int v_idx, int n);
 double** compute_lnorm(Graph *g);
 double** compute_jacobi();
-static PyObject* fit(PyObject* self, PyObject* args);
 
-
-/* Python */
 
 
 /* C */
@@ -270,7 +265,7 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
             off_diff += pow(A_tag[i][j], 2);
             off_diff -= pow(A[i][j], 2);
         }
-        
+
         if (off_diff <= eps) {
             is_not_diag = 0;
             break;
@@ -300,5 +295,6 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
     free(A_tag);
 
 }
+
 
 
