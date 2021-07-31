@@ -186,11 +186,28 @@ void muilti_mat_vec(double **mat, double *vec, int n, double **res) {
 
 void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
     int is_not_diag = 1;
-    int i, j;
+    int i, j, r;
     double max_entry, curr_entry;
     int max_row, max_col;
     double theta, phi;
     double c, t, s;
+    double const eps = 0.001;
+    double **A_tag;
+    double *p;
+    double s_sq, c_sq;
+    double off_diff;
+
+    /* A_tag start as deep copy of A */
+    p = calloc((n * n), sizeof(double));
+    assert(p != NULL);
+    A_tag = calloc(n, sizeof(double*));
+    assert(A_tag != NULL);
+
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            A_tag[i][j] = A[i][j];
+        }
+    }
 
     /* Initalize the Idendity Matrix */
     for (i = 0; i < n; i++) {
@@ -198,13 +215,12 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
             eign_vecs[i][j] = (i == j);
         }
     }
-
     
-    max_row = 0; max_col = 1; /* Assume n >= 2 */
-    max_entry = fabs(A[max_row][max_col]);
     while(is_not_diag) {
-
         /* Pivot - Find the maximum absolute value A_ij */
+        max_row = 0; max_col = 1; /* Assume n >= 2 */
+        max_entry = fabs(A[max_row][max_col]);
+
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
                 curr_entry = fabs(A[i][j]);
@@ -216,10 +232,76 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
             }
         }
 
-        /* Obtain c,t */
-        phi = 0.5*atan2(-2*A[i][j],A[j][j] - A[i][i]);
+        /* Obtain c,s (P) */
+        phi = 0.5*atan2(-2*A[i][j],A[j][j] - A[i][i]); /* Internet ??? */
         s = sin(phi);
         c = cos(phi);
+
+        /* Relation between A and A_tag */
+        i = max_row;
+        j = max_col;
+        for (r = 0; r < n; r++) {
+            if ((r != i) && (r != j)) {
+                A_tag[r][i] = c*A[r][i] - s*A[r][j];
+                A_tag[r][j] = c*A[r][j] + s*A[r][i];
+            }
+        }
+        c_sq = pow(c, 2);
+        s_sq = pow(s, 2);
+        A_tag[i][i] = c_sq*A[i][i] + s_sq*A[j][j] - 2*s*c*A[i][j];
+        A_tag[j][j] = s_sq*A[i][i] + c_sq*A[j][j] + 2*s*c*A[i][j];
+        A_tag[i][j] = (c_sq - s_sq)*A[i][j] + s*c*(A[i][i] - A[j][j]); /* => =0 */
+
+        /* Update Eigenvectors */
+        /* TO-DO: Check & fix! what if i=j? */ 
+        for (r = 0; r < n; r++) {
+                eign_vecs[r][j] = c*eign_vecs[r][i] - s*eign_vecs[r][j];
+                eign_vecs[r][i] = c*eign_vecs[r][j] + s*eign_vecs[r][i];
+        }
+
+        /* Checking for Convergence */
+        off_diff = 0;
+        for (r = 0; r < n; r++) {
+            if ((r != i) && (r != j)) {
+                off_diff += pow(A[r][i], 2);
+                off_diff += pow(A[r][j], 2);
+                off_diff -= pow(A[r][i], 2);
+                off_diff -= pow(A[r][j], 2);
+            }
+        }
+        if (i != j) {
+            off_diff += pow(A_tag[i][j], 2);
+            off_diff -= pow(A[i][j], 2);
+        }
         
+        if (off_diff <= eps) {
+            is_not_diag = 0;
+            break;
+        }
+        
+        /* 'Deep' update A = A' */
+        for (r = 0; r < n; r++) {
+            if ((r != i) && (r != j)) {
+                A[r][i] = A_tag[r][i];
+                A[r][j] = A_tag[r][j];
+            }
+        }
+        A[i][i] = A_tag[i][i];
+        A[j][j] = A_tag[j][j];
+        A[i][j] = A_tag[i][j];
+
+
     }
+
+    /* Update Eigenvalues */
+    for (i = 0; i < n; i++) {
+        eign_vals[i] = A_tag[i][i];
+    }
+
+    /* Free A_tag <3 */
+    free(A_tag[0]);
+    free(A_tag);
+
 }
+
+
