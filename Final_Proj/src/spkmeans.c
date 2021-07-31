@@ -6,23 +6,23 @@
 
 
 /* Structures Declarations */
-struct Vector {
+typedef struct Vector {
     int dim;
     double *values;
-} typedef Vector;
+} Vector;
 
-struct Matrix {
+typedef struct Matrix {
     int rows;
     int cols;
     double **values;
-} typedef Matrix;
+} Matrix;
 
-struct Graph {
+typedef struct Graph {
     Vector **vertices;
     double **weights;
     double *degrees;
     int n, dim;
-} typedef Graph;
+} Graph;
 
 
 
@@ -33,11 +33,19 @@ double compute_distance(Vector *vec1, Vector *vec2m);
 double* compute_ddg(Graph *g);
 double compute_degree(double **weights, int v_idx, int n);
 double** compute_lnorm(Graph *g);
+double* inverse_sqrt_vec(double* degs,int n);
+void multi_vec_mat(double *vec, double **mat, int n, double **res);
+void multi_mat_vec(double **mat, double *vec, int n, double **res);
 double** compute_jacobi();
 
 
 
+
 /* C */
+int main() {
+    return 0;
+}
+
 double **compute_spk() {
     return 0;
 }
@@ -88,7 +96,7 @@ elaborate why we chose to represent the DDG with a vector instead of a matrix.
 and how it affects the other functions
 */
 double *compute_ddg(Graph *g) {
-    int i, j;
+    int i;
     double deg;
     double **weights = g -> weights;
     int n = g -> n;
@@ -148,6 +156,10 @@ double** compute_lnorm(Graph *g) {
 double* inverse_sqrt_vec(double *vector, int n) {
     double *res;
     int i;
+
+    /* Consider make it INPLACE */
+    res = calloc(n, sizeof(double*));
+    assert(res != NULL);
     
     for (i = 0; i < n; i++) {
         res[i] = 1 / (sqrt(vector[i]));
@@ -166,7 +178,7 @@ void multi_vec_mat(double *vec, double **mat, int n, double **res) {
     }
 }
 
-void muilti_mat_vec(double **mat, double *vec, int n, double **res) {
+void multi_mat_vec(double **mat, double *vec, int n, double **res) {
     int i, j;
 
     for (i = 0; i < n; i++) { 
@@ -181,8 +193,8 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
     int i, j, r;
     double max_entry, curr_entry;
     int max_row, max_col;
-    double theta, phi;
-    double c, t, s;
+    double phi;
+    double c, s;
     double const eps = 0.001;
     double **A_tag;
     double *p;
