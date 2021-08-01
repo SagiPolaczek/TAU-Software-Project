@@ -277,3 +277,4 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
 }
 
 
+
