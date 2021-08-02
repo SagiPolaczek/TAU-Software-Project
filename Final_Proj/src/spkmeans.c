@@ -6,6 +6,7 @@
 
 #include "spkmeans.h"
 
+#define _MEM_ALLOC_ERR "Fail to allocate memory."
 
 int main(int argc, char *argv[]) {
 
@@ -92,9 +93,9 @@ double** compute_lnorm(Graph *g) {
     int n = g -> n;
 
     p = calloc((n * n), sizeof(double));
-    assert(p != NULL);
+    assert(p != NULL && _MEM_ALLOC_ERR);
     res = calloc(n, sizeof(double*));
-    assert(res != NULL);
+    assert(res != NULL && _MEM_ALLOC_ERR);
 
     for (i = 0; i < n; i++) {
         res[i] = p + i*n;
@@ -123,7 +124,7 @@ double* inverse_sqrt_vec(double *vector, int n) {
 
     /* Consider make it INPLACE */
     res = calloc(n, sizeof(double*));
-    assert(res != NULL);
+    assert(res != NULL && _MEM_ALLOC_ERR);
     
     for (i = 0; i < n; i++) {
         res[i] = 1 / (sqrt(vector[i]));
@@ -170,9 +171,9 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
 
     /* A_tag start as deep copy of A */
     p = calloc((n * n), sizeof(double));
-    assert(p != NULL);
+    assert(p != NULL && _MEM_ALLOC_ERR);
     A_tag = calloc(n, sizeof(double*));
-    assert(A_tag != NULL);
+    assert(A_tag != NULL && _MEM_ALLOC_ERR);
 
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
@@ -286,5 +287,7 @@ void sort_by_eigen_values(double **vectors, double *values) {
         We should change the matrix reprasentation. 
         If so, we can achive O(1) time for swapping between two vectors instead of O(n).
     */
+
+   printf("%f%f", vectors[0][0], values[0]); /* For compilations purposes only */
 }
 
