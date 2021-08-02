@@ -224,7 +224,7 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
         A_tag[j][j] = s_sq*A[i][i] + c_sq*A[j][j] + 2*s*c*A[i][j];
         A_tag[i][j] = (c_sq - s_sq)*A[i][j] + s*c*(A[i][i] - A[j][j]); /* => =0 */
 
-        /* Update Eigenvectors */
+        /* Update Eigenvectors' matrix */
         /* TO-DO: Check & fix! what if i=j? */ 
         for (r = 0; r < n; r++) {
                 eign_vecs[r][j] = c*eign_vecs[r][i] - s*eign_vecs[r][j];
@@ -275,6 +275,16 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
     free(A_tag);
 
 }
+/* Sort the eigenvectors by the corresponding eigenvalues. INPLACE*/
+void sort_by_eigen_values(double **vectors, double *values) {
+    /* Idea:
+        qsort the eigenvalues. (fastest & easiest way).
+        Then order the eigenvectors to correspond the eigenvalues order.
+        The last part will take O(n^2) but maybe should be pretty fast.
 
-
+        NOTE:
+        We should change the matrix reprasentation. 
+        If so, we can achive O(1) time for swapping between two vectors instead of O(n).
+    */
+}
 
