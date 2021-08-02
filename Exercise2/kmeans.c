@@ -115,16 +115,11 @@ DataWrapper py_list_to_array(PyObject* py_list) {
             result[i][j] = PyFloat_AsDouble(value);
         }
     }
+    
     /* Pass the two array so we can free them both later */
     data_wrapper.container = p;
     data_wrapper.pointers = result;
     return data_wrapper;
-
-    /*
-     p == result[0]
-     free(result[0]); / == free(p)
-     free(result)
-    */
 
 }
 
