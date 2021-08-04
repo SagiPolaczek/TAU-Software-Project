@@ -30,4 +30,5 @@ double* inverse_sqrt_vec(double* degs,int n);
 void multi_vec_mat(double *vec, double **mat, int n, double **res);
 void multi_mat_vec(double **mat, double *vec, int n, double **res);
 void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals);
-void sort_by_eigen_values(double **vectors, double *values);
+void sort_by_eigen_values(double **vectors, double *values, int n);
+int cmpfunc (const void * a, const void * b);

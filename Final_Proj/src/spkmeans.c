@@ -277,17 +277,86 @@ void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals) {
 
 }
 /* Sort the eigenvectors by the corresponding eigenvalues. INPLACE*/
-void sort_by_eigen_values(double **vectors, double *values) {
+void sort_by_eigen_values(double **vectors, double *values, int n) {
     /* Idea:
-        qsort the eigenvalues. (fastest & easiest way).
+        qsort the eigenvalues. (fastest & easiest way (?)).
         Then order the eigenvectors to correspond the eigenvalues order.
-        The last part will take O(n^2) but maybe should be pretty fast.
+        The last part will take O(n^2) but maybe should be pretty fast because n <= 1000.
 
         NOTE:
-        We should change the matrix reprasentation. 
+        We should change the matrix representation. 
         If so, we can achive O(1) time for swapping between two vectors instead of O(n).
+
+        UPDATE (4.8 21:30)
+        It might be better to use insertion sort! consider it.
     */
+
+   double *values_copy;
+   int i, j;
+   double **vectors_T;
+   const int NULL_VALUE = -42;
+    
+    /* Deep copy the eigenvalues */
+    values_copy = calloc(n, sizeof(double*));
+    assert(values_copy != NULL && _MEM_ALLOC_ERR);
+    for (i = 0; i < n; i++) {
+        values_copy[i] = values[i];
+    }
+
+    /* Sort the values */   
+    qsort(values, n, sizeof(int), cmpfunc);
+
+    /* Copy the vectors after transpose into an array which allow us to swap rows (columns) in O(1) */
+    vectors_T = calloc(n, sizeof(int *));
+    assert(vectors_T != NULL && _MEM_ALLOC_ERR);
+    for (i = 0; i < n; i++) {
+        vectors_T[i] = calloc(n, sizeof(int));
+        assert(vectors_T[i] != NULL && _MEM_ALLOC_ERR);
+    }
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            vectors_T[j][i] = vectors[i][j];
+        }
+    }
+
+
+    /* Order the rows (columns) of vectors_T to correspond the *sorted* values */
+    for (i = 0; i < n; i++) {
+        int curr_sorted_value = values[i];
+        for (j = 0; j < n; j++) {
+            int curr_value = values_copy[j];
+            if (curr_value == curr_sorted_value) {
+                /* need to swap */
+                /* TODO: consider extract to outer function */
+                double *tmp = vectors_T[i];
+                vectors_T[i] = vectors_T[j];
+                vectors_T[j] = tmp;
+
+                /* mark the value as visited */
+                values_copy[j] = NULL_VALUE;
+                /* moved to the next sorted value */
+                continue;
+            }
+        }
+    }
+
+    /* copy the sorted rows as sorted columns */
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            vectors[j][i] = vectors_T[i][j];
+        }
+    }
+    
+    for (i = 0; i < n; i++) {
+        free(vectors_T[i]);
+    }
+    free(vectors_T);
 
    printf("%f%f", vectors[0][0], values[0]); /* For compilations purposes only */
 }
 
+/* Define a comparator for the qsort function.
+   Credit: 'tutorialspoint' */
+int cmpfunc (const void * a, const void * b) {
+    return ( *(int*)a - *(int*)b );
+}
