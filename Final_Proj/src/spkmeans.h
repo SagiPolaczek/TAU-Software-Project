@@ -13,7 +13,7 @@ typedef struct Matrix {
 } Matrix;
 
 typedef struct Graph {
-    Vector **vertices;
+    double **vertices; /* Type changed from Vector. Prototype */
     double **weights;
     double *degrees;
     int n, dim;
@@ -32,3 +32,6 @@ void multi_mat_vec(double **mat, double *vec, int n, double **res);
 void jacobi_alg(double **A, int n, double **eign_vecs, double *eign_vals);
 void sort_by_eigen_values(double **vectors, double *values, int n);
 int cmpfunc (const void * a, const void * b);
+void print_matrix(double **mat, int rows, int cols); 
+void read_data(char *file_path, Graph *graph);
+

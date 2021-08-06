@@ -7,3 +7,6 @@ kiki:
 
 build:
 	python setup.py build_ext --inplace
+
+debug:
+	gcc -ansi -Wall -Wextra -Werror -pedantic-errors spkmeans.c -lm -o spkmeans -D DEBUG

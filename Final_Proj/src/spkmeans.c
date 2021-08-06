@@ -5,24 +5,146 @@
 #include <math.h>
 
 #include "spkmeans.h"
+#include "debugger.h"
 
 #define _MEM_ALLOC_ERR "Fail to allocate memory."
 
+
+
+
+typedef enum goal { spk = (int)'s', 
+                    wam = (int)'w',
+                    ddg = (int)'d', 
+                    lnorm = (int)'l', 
+                    jacobi = (int)'j' } goal;
+
+/* CLI: k  goal  file_name */
 int main(int argc, char *argv[]) {
+    char *goal_string, *file_path;
+    int k;
+    goal goal;
+    /* Graph graph = {0}; */
 
 
-    printf("%d%s", argc, argv[0]);
+    LOG("\n----- DEBUGGING MODE ------\n");
+
+
+    assert(argc == 4 && "Invalid arguments amount!\nOnly 3 arguments are allowed.");
+    /* "You can assume that all input files and arguments are valid" - No need for further checks */
+    
+    k = atoi(argv[1]);
+
+    goal_string = argv[2];
+    goal = (int)(goal_string[0]);
+
+    file_path = argv[3];
+
+    
+
+    /* read_data(file_path, &graph); */ 
+    
+
+
+    switch (goal)
+    {
+        case spk:
+        {
+
+        } break;
+        
+        case wam:
+        {
+
+        } break;
+
+        case ddg:
+        {
+
+        } break;
+
+        case lnorm:
+        {
+
+        } break;
+
+        case jacobi:
+        {
+
+        } break;
+    }
+
+    printf("%d%s", argc, argv[0]); /* For compilation purposes only. Remove when finshed */
     return 0;
 }
 
+/* Read the file and contain the data inplace in the graph */
+void read_data(char *file_path, Graph *graph) {
+    double value;
+    char c;
+    int first_round = 1;
+    int data_count = 0, dim = 0;
+    double *p;
+    double **data_points;
+    int i, j;
+
+
+    FILE *ptr = fopen(file_path, "r");
+    assert(ptr != NULL && "Could not load file");
+
+    /* Scan data from the file to *count* dim and data_count */
+    while (scanf("%lf%c", &value, &c) == 2)
+    {
+        /* Get dimention */
+        if (first_round == 1) {
+            dim++;
+        }
+
+        if (c == '\n') 
+        {
+            first_round = 0;
+            /* Keep track on the vectors' amount */
+            data_count++;
+        }        
+    }
+    
+    rewind(ptr);
+
+    /* Init a 2-dimentaional array for the data (Vectors)*/ 
+    p = calloc((data_count * dim), sizeof(double));
+    assert(p != NULL);
+
+    data_points = calloc(data_count, sizeof(double *));
+    assert(data_points != NULL);
+
+    for (i = 0; i < data_count; i++) {
+        data_points[i] = p + i*dim;
+    }
+
+    /* Put the data from the stream into the Array */
+    for (i = 0; i < data_count; i++) {
+        for (j = 0; j < dim; j++) {
+            scanf("%lf%c", &value, &c);
+            data_points[i][j] = value;
+        }
+    }
+
+    graph->vertices = data_points;
+    graph->dim = dim;
+    graph->n = data_count;
+}
+
 double **compute_wam(Graph *g) {
-    int i, j, n;
+   /* int i, j, n;
     double weight, distance;
     Vector *v1, *v2;
     Vector **vertices = g -> vertices;
+    double **vertices = g -> vertices;
+
+    */
+
     double **weights = g -> weights;
 
-    n = g -> n;
+   /*  n = g -> n;
     for (i = 0; i < n; i++) {
         v1 = vertices[i];
         for (j = 0; j < i; j++) {
@@ -33,7 +155,7 @@ double **compute_wam(Graph *g) {
             weights[j][i] = weight;
         }
         weights[i][i] = 0;
-    }
+    } */ 
     return weights;
 }
 
@@ -289,6 +411,20 @@ void sort_by_eigen_values(double **vectors, double *values, int n) {
 
         UPDATE (4.8 21:30)
         It might be better to use insertion sort! consider it.
+
+        UPDATE (6.8 11:40)
+        Another Idea!
+        We can just sort the eigenvalues!
+        If we sort only the eigenvalues, we can find the K easily.
+        Then we'll copy only the K relevant eigenvectors by iterating over the matrix.
+        The last operation bounded by O(n^2).
+
+        UPDATE (6.8 13:34)
+        Another Idea!
+        We can use the qsort on the matrix itself and just define the comperator as we pleased!
+        A comlexity of O(nlogn) without much effort! plus we get the fast implementation of the qsort.
+        For this idea we shall use the transpose matrix, and make sure the corresponding values are
+        swaps as their eigenvectors are being swap. 
     */
 
    double *values_copy;
