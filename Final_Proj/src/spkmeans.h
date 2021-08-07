@@ -10,6 +10,13 @@ typedef struct Graph {
     int n, dim;
 } Graph;
 
+typedef enum goal { spk = (int)'s', 
+                    wam = (int)'w',
+                    ddg = (int)'d', 
+                    lnorm = (int)'l', 
+                    jacobi = (int)'j' } goal;
+
+
 
 /* Functions Declarations*/
 void compute_wam(Graph *graph);
@@ -23,6 +30,8 @@ void multi_mat_vec(double **mat, double *vec, int n, double **res);
 void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals);
 void sort_by_eigen_values(double **vectors, double *values, int n);
 int cmpfunc (const void *a, const void *b);
-void print_matrix(double **mat, int rows, int cols); 
-void read_data(char *file_path, Graph *graph);
+void print_matrix(double **mat, int rows, int cols);
+void print_vector_as_matrix(double *diag, int n);
+void read_data(Graph *graph, char *file_path);
+void free_graph(Graph *graph, goal goal);
 

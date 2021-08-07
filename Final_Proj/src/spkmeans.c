@@ -9,27 +9,21 @@
 
 #define _MEM_ALLOC_ERR "Fail to allocate memory."
 
-
-
-
-typedef enum goal { spk = (int)'s', 
-                    wam = (int)'w',
-                    ddg = (int)'d', 
-                    lnorm = (int)'l', 
-                    jacobi = (int)'j' } goal;
+/*
+    TODO: 
+    * Put the memory allocations into the functions themselves.
+*/
 
 /* CLI: k  goal  file_name */
 int main(int argc, char *argv[]) {
     char *goal_string, *file_path;
-    int k, N;
+    int k, N, i;
     goal goal;
     Graph graph = {0};
-    double **weights;
     double *ptr1;
     double *eigenvalues, **eigenvectors;
 
-
-    LOG("\n----- DEBUGGING MODE ------\n");
+    LOG("\n----- DEBUGGING MODE ------\n\n");
 
 
     assert(argc == 4 && "Invalid arguments amount!\nOnly 3 arguments are allowed.");
@@ -39,89 +33,92 @@ int main(int argc, char *argv[]) {
     goal_string = argv[2];
     goal = (int)(goal_string[0]);
     file_path = argv[3];
-
+    
+    /* Read the data into graph's {vertices, N, dim} */
+    read_data(&graph, file_path);
+    N = graph.n;
     
 
+    compute_wam(&graph);
 
+    /* If the goal is only to compute the WAM, we finished */
+    if (goal == wam) {
+        print_matrix(graph.weights, N, N);
 
-    /* read_data(file_path, &graph); */
-    
+        free_graph(&graph, wam);
 
-    /* Alternative to switch:
-       excute wam->ddg->lnorm->jacobi->spk
-       and 'break' with 'if's */
-    switch (goal)
-    {
-        case spk:
-        {
-            LOG("Goal: spk\n");
-
-        } break;
-        
-        case wam:
-        {
-            LOG("Goal: wam\n");
-            compute_wam(&graph);
-            N = graph.n;
-            weights = graph.weights;
-
-            /* Print weights */
-        } break;
-
-        case ddg:
-        {
-            LOG("Goal: ddg\n");
-            compute_wam(&graph);
-            compute_ddg(&graph);
-
-            /* Print graph.ddg */
-        } break;
-
-        case lnorm:
-        {
-            LOG("Goal: lnorm\n");
-
-            compute_wam(&graph);
-            compute_ddg(&graph);
-            compute_lnorm(&graph);
-
-            /* Print graph.lnorm */
-        } break;
-
-        case jacobi:
-        {
-            LOG("Goal: jacobi\n");
-
-            compute_wam(&graph);
-            compute_ddg(&graph);
-            compute_lnorm(&graph);
-
-            N = graph.n;
-
-            ptr1 = calloc((N * N), sizeof(double));
-            assert(ptr1 != NULL && _MEM_ALLOC_ERR);
-            eigenvectors = calloc(N, sizeof(double*));
-            assert(eigenvectors != NULL && _MEM_ALLOC_ERR);
-
-            eigenvalues = calloc(N, sizeof(double));
-            assert(eigenvalues != NULL && _MEM_ALLOC_ERR);
-
-            compute_jacobi(&graph, eigenvectors, eigenvalues);
-            
-            /* Print eigenvectors & eigenvalues */
-
-            free(ptr1);
-            free(eigenvectors);
-            free(eigenvalues);
-
-        } break;
+        LOG("-- COMPLETE GOAL WAM --");
+        return 42;
     }
 
-    return 0;
+    compute_ddg(&graph);
+    
+    if (goal == ddg) {
+        print_vector_as_matrix(graph.degrees, N);
+
+        free_graph(&graph, ddg);
+        LOG("-- COMPLETE GOAL DDG --");
+        return 42;
+    }
+
+    compute_lnorm(&graph);
+
+    if (goal == lnorm) {
+        print_matrix(graph.lnorm, N, N);
+
+        free_graph(&graph, lnorm);
+        LOG("-- COMPLETE GOAL LNORM --");
+        return 42;
+    }
+
+    /* Allocate memory for the eigenvectors & eigenvalues */
+    ptr1 = calloc((N * N), sizeof(double));
+    assert(ptr1 != NULL && _MEM_ALLOC_ERR);
+    eigenvectors = calloc(N, sizeof(double*));
+    assert(eigenvectors != NULL && _MEM_ALLOC_ERR);
+    for (i = 0; i < N; i++) {
+        eigenvectors[i] = ptr1 + i*N;
+    }
+
+    eigenvalues = calloc(N, sizeof(double));
+    assert(eigenvalues != NULL && _MEM_ALLOC_ERR);
+
+    compute_jacobi(&graph, eigenvectors, eigenvalues);
+
+    if (goal == jacobi) {
+
+        /* Print eigenvectors & eigenvalues */
+        LOG("-- Eigenvectors:\n");
+        print_matrix(eigenvectors, N, N);
+        LOG("-- Eigenvalues:\n");
+        print_matrix(&eigenvalues, 1, N);
+
+        free(ptr1);
+        free(eigenvectors);
+        free(eigenvalues);
+
+        free_graph(&graph, jacobi);
+
+        LOG("-- COMPLETE GOAL JACOBI --");
+        return 42;
+    }
+
+    /* goal == spk */
+
+    /* Extra operations */
+        
+    /* Print result */
+
+    free(ptr1);
+    free(eigenvectors);
+    free(eigenvalues);
+    free_graph(&graph, spk);
+
+    return 42;
 }
 
 /* Read the file and contain the data inplace in the graph */
-void read_data(char *file_path, Graph *graph) {
+void read_data(Graph *graph, char *file_path) {
     double value;
     char c;
     int first_round = 1;
@@ -129,13 +126,13 @@ void read_data(char *file_path, Graph *graph) {
     double *p;
     double **data_points;
     int i, j;
-
-
     FILE *ptr = fopen(file_path, "r");
     /* assert(ptr != NULL && "Could not load file"); */
 
+    LOG("-- Reading Data --\n");
+
     /* Scan data from the file to *count* dim and data_count */
-    while (scanf("%lf%c", &value, &c) == 2)
+    while (fscanf(ptr, "%lf%c", &value, &c) == 2)
     {
         /* Get dimention */
         if (first_round == 1) {
@@ -147,15 +144,14 @@ void read_data(char *file_path, Graph *graph) {
             first_round = 0;
             /* Keep track on the vectors' amount */
             data_count++;
-        }        
+        }
     }
-    
+
     rewind(ptr);
 
-    /* Init a 2-dimentaional array for the data (Vectors)*/ 
+    /* Init a 2-dimentaional array for the data (vectors)*/ 
     p = calloc((data_count * dim), sizeof(double));
     assert(p != NULL);
-
     data_points = calloc(data_count, sizeof(double *));
     assert(data_points != NULL);
 
@@ -166,39 +162,53 @@ void read_data(char *file_path, Graph *graph) {
     /* Put the data from the stream into the Array */
     for (i = 0; i < data_count; i++) {
         for (j = 0; j < dim; j++) {
-            scanf("%lf%c", &value, &c);
+            fscanf(ptr, "%lf%c", &value, &c);
             data_points[i][j] = value;
         }
     }
+    fclose(ptr);
 
     graph->vertices = data_points;
     graph->dim = dim;
-    graph->n = data_count;
+    graph->n = data_count;    
     return;
 }
 
-void compute_wam(Graph *g) {
-    int i, j, n;
+void compute_wam(Graph *graph) {
+    int i, j, N, dim;
     double weight, distance;
     double *v1, *v2;
-    double **vertices = g -> vertices;
+    double **vertices = graph -> vertices;
+    double **weights, *p;
 
+    LOG("-- Computing WAM --\n");
     
+    N = graph->n;
+    dim = graph->dim;
 
-    double **weights = g -> weights;
+    /* Allocate memory for the WAM */
+    p = calloc((N * N), sizeof(double));
+    assert(p != NULL && _MEM_ALLOC_ERR);
+    weights = calloc(N, sizeof(double*));
+    assert(weights != NULL && _MEM_ALLOC_ERR);
+    for (i = 0; i < N; i++) {
+        weights[i] = p + i*N;
+    }
 
-    n = g -> n;
-    for (i = 0; i < n; i++) {
+    graph->weights = weights;
+    
+    for (i = 0; i < N; i++) {
         v1 = vertices[i];
         for (j = 0; j < i; j++) {
             v2 = vertices[j];
-            distance = compute_distance(v1, v2, g->dim);
+            distance = compute_distance(v1, v2, dim);
             weight = exp((-1) * distance / 2);
             weights[i][j] = weight;
             weights[j][i] = weight;
         }
         weights[i][i] = 0;
     }
+    LOG("-- COMPLETE COMPUTE WAM --\n");
     return;
 }
 
@@ -221,15 +231,22 @@ TO DO:
 elaborate why we chose to represent the DDG with a vector instead of a matrix.
 and how it affects the other functions
 */
-void compute_ddg(Graph *g) {
+void compute_ddg(Graph *graph) {
     int i;
     double deg;
-    double **weights = g -> weights;
-    int n = g -> n;
-    double *ddg = g -> degrees;
+    double **weights = graph -> weights;
+    int N = graph -> n;
+    double *ddg;
 
-    for (i = 0; i < n; i++) {
-        deg = compute_degree(weights, i, n);
+    LOG("-- Computing DDG --\n");
+
+    /* Allocate memory for the DDG's "matrix" - represented by vector */
+    ddg = calloc(N, sizeof(double*));
+    assert(ddg != NULL && _MEM_ALLOC_ERR);
+    graph->degrees = ddg;
+
+    for (i = 0; i < N; i++) {
+        deg = compute_degree(weights, i, N);
         ddg[i] = deg;
     }
     return;
@@ -246,36 +263,39 @@ double compute_degree(double **weights, int v_idx, int n) {
     return deg;
 }
 
-void compute_lnorm(Graph *g) {
-    double *invsqrt_d;
+void compute_lnorm(Graph *graph) {
+    double *invsqrt_d, *p;
     int i, j;
-    double **weights = g -> weights;
-    double *degs = g -> degrees;
-    int n = g -> n;
-    double **lnorm = g->lnorm;
+    double **weights = graph -> weights;
+    double *degs = graph -> degrees;
+    int N = graph -> n;
+    double **lnorm;
 
-    /*
-    lnorm matrix replaced the res matrix
+    LOG("-- Computing LNORM --\n");
 
-    p = calloc((n * n), sizeof(double));
+    /* Allocate memory for the Lnorm's matrix */
+    p = calloc((N * N), sizeof(double));
     assert(p != NULL && _MEM_ALLOC_ERR);
-    res = calloc(n, sizeof(double*));
-    assert(res != NULL && _MEM_ALLOC_ERR);
+    lnorm = calloc(N, sizeof(double*));
+    assert(lnorm != NULL && _MEM_ALLOC_ERR);
 
-    for (i = 0; i < n; i++) {
-        res[i] = p + i*n;
-    } */
+    for (i = 0; i < N; i++) {
+        lnorm[i] = p + i*N;
+    }
+    graph->lnorm = lnorm;
 
-    invsqrt_d = inverse_sqrt_vec(degs, n);
+    invsqrt_d = inverse_sqrt_vec(degs, N);
 
     /* (invsqrt_d * W * invsqrt_d)
       = ((invsqrt_d * W) * invsqrt_d) */
-    multi_vec_mat(invsqrt_d, weights, n, lnorm);
-    multi_mat_vec(lnorm, invsqrt_d, n, lnorm);
+    multi_vec_mat(invsqrt_d, weights, N, lnorm);
+    multi_mat_vec(lnorm, invsqrt_d, N, lnorm);
 
+    free(invsqrt_d);
+    
     /* res = I - res */
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
             lnorm[i][j] = (-1) * lnorm[i][j];
         }
         lnorm[i][i] += 1;
@@ -320,7 +340,7 @@ void multi_mat_vec(double **mat, double *vec, int n, double **res) {
 
 void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
     int is_not_diag = 1;
-    int i, j, r, n;
+    int i, j, r, N;
     double max_entry, curr_entry;
     int max_row, max_col;
     double phi;
@@ -333,24 +353,29 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
     const double EPS = 0.001;
     int iter_count;
 
-    n = graph->n;
+    LOG("-- Computing JACOBI --\n");
+
+    N = graph->n;
     A = graph->lnorm;
 
     /* A_tag start as deep copy of A */
-    p = calloc((n * n), sizeof(double));
+    p = calloc((N * N), sizeof(double));
     assert(p != NULL && _MEM_ALLOC_ERR);
-    A_tag = calloc(n, sizeof(double*));
+    A_tag = calloc(N, sizeof(double*));
     assert(A_tag != NULL && _MEM_ALLOC_ERR);
+    for (i = 0; i < N; i++) {
+        A_tag[i] = p + i*N;
+    }
 
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
             A_tag[i][j] = A[i][j];
         }
     }
-
+    
     /* Initalize the Idendity Matrix */
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
             eign_vecs[i][j] = (i == j);
         }
     }
@@ -360,9 +385,9 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
         /* Pivot - Find the maximum absolute value A_ij */
         max_row = 0; max_col = 1; /* Assume n >= 2 */
         max_entry = fabs(A[max_row][max_col]);
-
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < n; j++) {
+        
+        for (i = 0; i < N; i++) {
+            for (j = 0; j < N; j++) {
                 curr_entry = fabs(A[i][j]);
                 if ((i != j) && (curr_entry > max_entry)) {
                     max_entry = curr_entry;
@@ -372,7 +397,12 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
             }
         }
 
+
+        i = max_row;
+        j = max_col;
+
         /* Obtain c,s (P) */
+        phi = A[j][i];
         phi = 0.5*atan2(-2*A[i][j],A[j][j] - A[i][i]); /* Internet ??? */
         s = sin(phi);
         c = cos(phi);
@@ -380,7 +410,7 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
         /* Relation between A and A_tag */
         i = max_row;
         j = max_col;
-        for (r = 0; r < n; r++) {
+        for (r = 0; r < N; r++) {
             if ((r != i) && (r != j)) {
                 A_tag[r][i] = c*A[r][i] - s*A[r][j];
                 A_tag[r][j] = c*A[r][j] + s*A[r][i];
@@ -394,14 +424,14 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
 
         /* Update Eigenvectors' matrix */
         /* TO-DO: Check & fix! what if i=j? */ 
-        for (r = 0; r < n; r++) {
+        for (r = 0; r < N; r++) {
                 eign_vecs[r][j] = c*eign_vecs[r][i] - s*eign_vecs[r][j];
                 eign_vecs[r][i] = c*eign_vecs[r][j] + s*eign_vecs[r][i];
         }
 
         /* Checking for Convergence */
         off_diff = 0;
-        for (r = 0; r < n; r++) {
+        for (r = 0; r < N; r++) {
             if ((r != i) && (r != j)) {
                 off_diff += pow(A[r][i], 2);
                 off_diff += pow(A[r][j], 2);
@@ -420,7 +450,7 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
         }
         
         /* 'Deep' update A = A' */
-        for (r = 0; r < n; r++) {
+        for (r = 0; r < N; r++) {
             if ((r != i) && (r != j)) {
                 A[r][i] = A_tag[r][i];
                 A[r][j] = A_tag[r][j];
@@ -434,7 +464,7 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
     }
 
     /* Update Eigenvalues */
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < N; i++) {
         eign_vals[i] = A_tag[i][i];
     }
 
@@ -535,11 +565,67 @@ void sort_by_eigen_values(double **vectors, double *values, int n) {
     }
     free(vectors_T);
 
-   printf("%f%f", vectors[0][0], values[0]); /* For compilations purposes only */
 }
 
 /* Define a comparator for the qsort function.
    Credit: 'tutorialspoint' */
 int cmpfunc (const void * a, const void * b) {
     return ( *(int*)a - *(int*)b );
+}
+
+void free_graph(Graph *graph, goal goal) {
+    LOG("-- FREE GRAPH --\n");
+    free((graph->vertices)[0]);
+    free(graph->vertices);
+    free((graph->weights)[0]);
+    free(graph->weights);
+
+    if (goal == wam) {return;}
+
+    free(graph->degrees);
+
+    if (goal == ddg) {return;}
+
+    free((graph->lnorm)[0]);
+    free(graph->lnorm);
+
+    return;
+}
+
+void print_matrix(double **mat, int rows, int cols) {
+    double *vec;
+    double val;
+    int i, j;
+
+    for (i = 0; i < rows; i++) {
+        vec = mat[i];
+        for (j = 0; j < cols; j++) {
+            val = vec[j];
+            printf("%.4f", val);
+            if (j < cols - 1) {
+                printf(",");
+            }
+        }
+        printf("\n");
+    }
+}
+
+void print_vector_as_matrix(double *diag, int n) {
+    double val;
+    int i, j;
+
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            if (i == j) {
+                val = diag[i];
+            } else {
+                val = 0;
+            }
+            printf("%.4f", val);
+            if (j < n - 1) {
+                printf(",");
+            }
+        }
+        printf("\n");
+    }
 }
