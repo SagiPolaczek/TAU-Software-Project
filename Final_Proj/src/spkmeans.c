@@ -7,7 +7,7 @@
 #include "spkmeans.h"
 #include "debugger.h"
 
-#define _MEM_ALLOC_ERR "Fail to allocate memory."
+#define MEM_ALLOC_ERR "Fail to allocate memory."
 
 /*
     TODO: 
@@ -73,15 +73,15 @@ int main(int argc, char *argv[]) {
 
     /* Allocate memory for the eigenvectors & eigenvalues */
     ptr1 = calloc((N * N), sizeof(double));
-    assert(ptr1 != NULL && _MEM_ALLOC_ERR);
+    assert(ptr1 != NULL && MEM_ALLOC_ERR);
     eigenvectors = calloc(N, sizeof(double*));
-    assert(eigenvectors != NULL && _MEM_ALLOC_ERR);
+    assert(eigenvectors != NULL && MEM_ALLOC_ERR);
     for (i = 0; i < N; i++) {
         eigenvectors[i] = ptr1 + i*N;
     }
 
     eigenvalues = calloc(N, sizeof(double));
-    assert(eigenvalues != NULL && _MEM_ALLOC_ERR);
+    assert(eigenvalues != NULL && MEM_ALLOC_ERR);
 
     compute_jacobi(&graph, eigenvectors, eigenvalues);
 
@@ -151,9 +151,9 @@ void read_data(Graph *graph, char *file_path) {
 
     /* Init a 2-dimentaional array for the data (vectors)*/ 
     p = calloc((data_count * dim), sizeof(double));
-    assert(p != NULL);
+    assert(p != NULL && MEM_ALLOC_ERR);
     data_points = calloc(data_count, sizeof(double *));
-    assert(data_points != NULL);
+    assert(data_points != NULL && MEM_ALLOC_ERR);
 
     for (i = 0; i < data_count; i++) {
         data_points[i] = p + i*dim;
@@ -188,9 +188,9 @@ void compute_wam(Graph *graph) {
 
     /* Allocate memory for the WAM */
     p = calloc((N * N), sizeof(double));
-    assert(p != NULL && _MEM_ALLOC_ERR);
+    assert(p != NULL && MEM_ALLOC_ERR);
     weights = calloc(N, sizeof(double*));
-    assert(weights != NULL && _MEM_ALLOC_ERR);
+    assert(weights != NULL && MEM_ALLOC_ERR);
     for (i = 0; i < N; i++) {
         weights[i] = p + i*N;
     }
@@ -242,7 +242,7 @@ void compute_ddg(Graph *graph) {
 
     /* Allocate memory for the DDG's "matrix" - represented by vector */
     ddg = calloc(N, sizeof(double*));
-    assert(ddg != NULL && _MEM_ALLOC_ERR);
+    assert(ddg != NULL && MEM_ALLOC_ERR);
     graph->degrees = ddg;
 
     for (i = 0; i < N; i++) {
@@ -275,9 +275,9 @@ void compute_lnorm(Graph *graph) {
 
     /* Allocate memory for the Lnorm's matrix */
     p = calloc((N * N), sizeof(double));
-    assert(p != NULL && _MEM_ALLOC_ERR);
+    assert(p != NULL && MEM_ALLOC_ERR);
     lnorm = calloc(N, sizeof(double*));
-    assert(lnorm != NULL && _MEM_ALLOC_ERR);
+    assert(lnorm != NULL && MEM_ALLOC_ERR);
 
     for (i = 0; i < N; i++) {
         lnorm[i] = p + i*N;
@@ -309,7 +309,7 @@ double* inverse_sqrt_vec(double *vector, int n) {
 
     /* Consider make it INPLACE */
     res = calloc(n, sizeof(double*));
-    assert(res != NULL && _MEM_ALLOC_ERR);
+    assert(res != NULL && MEM_ALLOC_ERR);
     
     for (i = 0; i < n; i++) {
         res[i] = 1 / (sqrt(vector[i]));
@@ -360,9 +360,9 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
 
     /* A_tag start as deep copy of A */
     p = calloc((N * N), sizeof(double));
-    assert(p != NULL && _MEM_ALLOC_ERR);
+    assert(p != NULL && MEM_ALLOC_ERR);
     A_tag = calloc(N, sizeof(double*));
-    assert(A_tag != NULL && _MEM_ALLOC_ERR);
+    assert(A_tag != NULL && MEM_ALLOC_ERR);
     for (i = 0; i < N; i++) {
         A_tag[i] = p + i*N;
     }
@@ -511,7 +511,7 @@ void sort_by_eigen_values(double **vectors, double *values, int n) {
     
     /* Deep copy the eigenvalues */
     values_copy = calloc(n, sizeof(double*));
-    assert(values_copy != NULL && _MEM_ALLOC_ERR);
+    assert(values_copy != NULL && MEM_ALLOC_ERR);
     for (i = 0; i < n; i++) {
         values_copy[i] = values[i];
     }
@@ -521,10 +521,10 @@ void sort_by_eigen_values(double **vectors, double *values, int n) {
 
     /* Copy the vectors after transpose into an array which allow us to swap rows (columns) in O(1) */
     vectors_T = calloc(n, sizeof(int *));
-    assert(vectors_T != NULL && _MEM_ALLOC_ERR);
+    assert(vectors_T != NULL && MEM_ALLOC_ERR);
     for (i = 0; i < n; i++) {
         vectors_T[i] = calloc(n, sizeof(int));
-        assert(vectors_T[i] != NULL && _MEM_ALLOC_ERR);
+        assert(vectors_T[i] != NULL && MEM_ALLOC_ERR);
     }
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
@@ -610,22 +610,22 @@ void print_matrix(double **mat, int rows, int cols) {
     }
 }
 
-void print_vector_as_matrix(double *diag, int n) {
-    double val;
-    int i, j;
+/* Final function for operate the SPK.
+   We assume that jacobi was computed (and all it's dependencies) */
 
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            if (i == j) {
-                val = diag[i];
-            } else {
-                val = 0;
-            }
-            printf("%.4f", val);
-            if (j < n - 1) {
-                printf(",");
-            }
-        }
-        printf("\n");
-    }
+void finish_spk() {
+    
+    /*  If k doesn't provided (k==0):
+            Determine k */
+
+    /*  Obtain the first k eigenvectors u1, ..., uk
+        Form the matrix U(nxk) which u_i is the i'th column */
+
+    /*  Form T from U by renormalizing each row to have the unit length */
+
+    /*  Traet each row of T as a point in R^k.
+        cluster them into k clusters with the k-means */
+
+    /*  Assign the original points to the clusters */
+    
 }
