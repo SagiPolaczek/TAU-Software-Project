@@ -610,9 +610,27 @@ void print_matrix(double **mat, int rows, int cols) {
     }
 }
 
-/* Final function for operate the SPK.
-   We assume that jacobi was computed (and all it's dependencies) */
+void print_vector_as_matrix(double *diag, int n) {
+    double val;
+    int i, j;
 
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            if (i == j) {
+                val = diag[i];
+            } else {
+                val = 0;
+            }
+            printf("%.4f", val);
+            if (j < n - 1) {
+                printf(",");
+            }
+        }
+        printf("\n");
+    }
+}
+
+/* Last operations after computing jacobi and his dependencies */
 void finish_spk() {
     
     /*  If k doesn't provided (k==0):
@@ -628,4 +646,7 @@ void finish_spk() {
 
     /*  Assign the original points to the clusters */
     
+    
 }
+
+
