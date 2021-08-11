@@ -1,14 +1,22 @@
 
-
 /* Structures Declarations */
-
 typedef struct Graph {
     double **vertices;
     double **weights;
     double **lnorm;
     double *degrees;
-    int n, dim;
+    int n, dim; // n should be N?
 } Graph;
+
+typedef struct DataWrapper1D {
+    double *pointers;
+    double *container;
+} DataWrapper1D;
+
+typedef struct DataWrapper2D {
+    double **pointers;
+    double *container;
+} DataWrapper2D;
 
 typedef enum goal { spk = (int)'s', 
                     wam = (int)'w',
@@ -17,8 +25,7 @@ typedef enum goal { spk = (int)'s',
                     jacobi = (int)'j' } goal;
 
 
-
-/* Functions Declarations*/
+/* Functions Declarations */
 void compute_wam(Graph *graph);
 double compute_distance(double *vec1, double *vec2, int dim);
 void compute_ddg(Graph *graph);
