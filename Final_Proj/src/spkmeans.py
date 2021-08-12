@@ -116,14 +116,28 @@ def main():
 
     # TODO: can we assume unempty input or validate?
     N = len(data_points)
-    d = len(data_points[0])
+    dim = len(data_points[0])
 
     assert K < N, "K must be smaller than N!"
 
     initial_centroids, centroids_indices = init_centroids(data_points, K)
 
-    result = km.fit(initial_centroids, data_points, centroids_indices, N, d, K, max_iter, goal) # added goal here
-
+    # TODO: can replace ENUM implementation
+    # TODO: consider match-case, depends on python version on the server
+    # TODO: add inputs
+    if goal == "spk":
+        result = spk.fit_spk()
+    elif goal == "wam":
+        result = spk.fit_wam()
+    elif goal == "ddg":
+        result = spk.fit_ddg()
+    elif goal == "lnorm":
+        result = spk.fit_lnorm()
+    elif goal == "jacobi":
+        result = spk.fit_jacobi()
+    else:
+        assert False, "Invalid goal input!" # will replace the enum
+    
     if goal == "spk":
         # Print indices centroids
         for i in range(len(centroids_indices)):
