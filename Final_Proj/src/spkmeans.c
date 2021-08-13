@@ -478,7 +478,7 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
 
 /* Define a comparator for the qsort function.
    Credit: 'tutorialspoint' */
-int cmpfunc (const void * a, const void * b) {
+int cmp_func (const void * a, const void * b) {
     return ( *(int*)a - *(int*)b );
 }
 
@@ -553,7 +553,7 @@ void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K) {
     }
 
     /* Sort eigenvalues_sorted */
-    qsort(eigenvalues_sorted, N, sizeof(int), cmpfunc);
+    qsort(eigenvalues_sorted, N, sizeof(int), cmp_func);
 
     /*  If k doesn't provided (k==0) determine k */
     if (K == 0) {

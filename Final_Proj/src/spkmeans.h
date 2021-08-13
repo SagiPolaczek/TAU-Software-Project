@@ -36,7 +36,7 @@ void multi_vec_mat(double *vec, double **mat, int n, double **res);
 void multi_mat_vec(double **mat, double *vec, int n, double **res);
 void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals);
 void sort_by_eigen_values(double **vectors, double *values, int n);
-int cmpfunc (const void *a, const void *b);
+int cmp_func (const void *a, const void *b);
 void print_matrix(double **mat, int rows, int cols);
 void print_vector_as_matrix(double *diag, int n);
 void read_data(Graph *graph, char *file_path);

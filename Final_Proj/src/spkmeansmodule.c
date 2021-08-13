@@ -54,7 +54,7 @@ static PyObject* fit_wam(PyObject* self, PyObject* args) {
     G.weights = weights;
     G.lnorm = lnorm;
     G.degrees = degrees;
-    G.n = N;
+    G.N = N;
     G.dim = dim;
 
     /* Main Algorithm - Assuming returns matrix W */
