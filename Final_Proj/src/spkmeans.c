@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     goal goal;
     Graph graph = {0};
     double *ptr1;
-    double *eigenvalues, **eigenvectors;
+    double *eigenvalues, **eigenvectors, **A;
 
     LOG("\n----- DEBUGGING MODE ------\n\n");
 
@@ -38,6 +38,38 @@ int main(int argc, char *argv[]) {
     read_data(&graph, file_path);
     N = graph.N;
     
+    if (goal == jacobi) { /* DUPLICATE CODE IN THE MEMORY ALLOCATION */
+
+        /* Allocate memory for the eigenvectors & eigenvalues */
+        ptr1 = calloc((N * N), sizeof(double));
+        assert(ptr1 != NULL && MEM_ALLOC_ERR);
+        eigenvectors = calloc(N, sizeof(double*));
+        assert(eigenvectors != NULL && MEM_ALLOC_ERR);
+        for (i = 0; i < N; i++) {
+            eigenvectors[i] = ptr1 + i*N;
+        }
+
+        eigenvalues = calloc(N, sizeof(double));
+        assert(eigenvalues != NULL && MEM_ALLOC_ERR);
+
+        A = graph.vertices;
+        compute_jacobi(A, N, eigenvectors, eigenvalues);
+
+        /* Print eigenvectors & eigenvalues */
+        LOG("-- Eigenvectors:\n");
+        print_matrix(eigenvectors, N, N);
+        LOG("-- Eigenvalues:\n");
+        print_matrix(&eigenvalues, 1, N);
+
+        free(ptr1);
+        free(eigenvectors);
+        free(eigenvalues);
+
+        free_graph(&graph, jacobi);
+
+        LOG("-- COMPLETE GOAL JACOBI --");
+        return 42;
+    }
 
     compute_wam(&graph);
 
@@ -83,25 +115,9 @@ int main(int argc, char *argv[]) {
     eigenvalues = calloc(N, sizeof(double));
     assert(eigenvalues != NULL && MEM_ALLOC_ERR);
 
-    compute_jacobi(&graph, eigenvectors, eigenvalues);
+    A = graph.lnorm;
+    compute_jacobi(A, N, eigenvectors, eigenvalues);
 
-    if (goal == jacobi) {
-
-        /* Print eigenvectors & eigenvalues */
-        LOG("-- Eigenvectors:\n");
-        print_matrix(eigenvectors, N, N);
-        LOG("-- Eigenvalues:\n");
-        print_matrix(&eigenvalues, 1, N);
-
-        free(ptr1);
-        free(eigenvectors);
-        free(eigenvalues);
-
-        free_graph(&graph, jacobi);
-
-        LOG("-- COMPLETE GOAL JACOBI --");
-        return 42;
-    }
 
     /* goal == spk */
 
@@ -338,14 +354,14 @@ void multi_mat_vec(double **mat, double *vec, int n, double **res) {
     } 
 }
 
-void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
+void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) {
     int is_not_diag = 1;
-    int i, j, r, N;
+    int i, j, r;
     double max_entry, curr_entry;
     int max_row, max_col;
     double phi;
     double c, s;
-    double **A_tag, **A;
+    double **A_tag;
     double *p;
     double s_sq, c_sq;
     double off_diff;
@@ -354,9 +370,6 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
     int iter_count;
 
     LOG("-- Computing JACOBI --\n");
-
-    N = graph->N;
-    A = graph->lnorm;
 
     /* A_tag start as deep copy of A */
     p = calloc((N * N), sizeof(double));
@@ -376,7 +389,7 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
     /* Initalize the Idendity Matrix */
     for (i = 0; i < N; i++) {
         for (j = 0; j < N; j++) {
-            eign_vecs[i][j] = (i == j);
+            eigen_vecs[i][j] = (i == j);
         }
     }
     
@@ -425,8 +438,8 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
         /* Update Eigenvectors' matrix */
         /* TO-DO: Check & fix! what if i=j? */ 
         for (r = 0; r < N; r++) {
-                eign_vecs[r][j] = c*eign_vecs[r][i] - s*eign_vecs[r][j];
-                eign_vecs[r][i] = c*eign_vecs[r][j] + s*eign_vecs[r][i];
+                eigen_vecs[r][j] = c*eigen_vecs[r][i] - s*eigen_vecs[r][j];
+                eigen_vecs[r][i] = c*eigen_vecs[r][j] + s*eigen_vecs[r][i];
         }
 
         /* Checking for Convergence */
@@ -465,7 +478,7 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
 
     /* Update Eigenvalues */
     for (i = 0; i < N; i++) {
-        eign_vals[i] = A_tag[i][i];
+        eigen_vals[i] = A_tag[i][i];
     }
 
     /* Free A_tag <3 */
