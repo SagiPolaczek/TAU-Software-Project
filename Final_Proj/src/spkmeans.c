@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     
     /* Read the data into graph's {vertices, N, dim} */
     read_data(&graph, file_path);
-    N = graph.n;
+    N = graph.N;
     
 
     compute_wam(&graph);
@@ -170,7 +170,7 @@ void read_data(Graph *graph, char *file_path) {
 
     graph->vertices = data_points;
     graph->dim = dim;
-    graph->n = data_count;    
+    graph->N = data_count;    
     return;
 }
 
@@ -183,7 +183,7 @@ void compute_wam(Graph *graph) {
 
     LOG("-- Computing WAM --\n");
     
-    N = graph->n;
+    N = graph->N;
     dim = graph->dim;
 
     /* Allocate memory for the WAM */
@@ -235,7 +235,7 @@ void compute_ddg(Graph *graph) {
     int i;
     double deg;
     double **weights = graph -> weights;
-    int N = graph -> n;
+    int N = graph -> N;
     double *ddg;
 
     LOG("-- Computing DDG --\n");
@@ -268,7 +268,7 @@ void compute_lnorm(Graph *graph) {
     int i, j;
     double **weights = graph -> weights;
     double *degs = graph -> degrees;
-    int N = graph -> n;
+    int N = graph -> N;
     double **lnorm;
 
     LOG("-- Computing LNORM --\n");
@@ -355,7 +355,7 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
 
     LOG("-- Computing JACOBI --\n");
 
-    N = graph->n;
+    N = graph->N;
     A = graph->lnorm;
 
     /* A_tag start as deep copy of A */
@@ -475,97 +475,6 @@ void compute_jacobi(Graph *graph, double **eign_vecs, double *eign_vals) {
     return;
 }
 
-/* Sort the eigenvectors by the corresponding eigenvalues. INPLACE*/
-void sort_by_eigen_values(double **vectors, double *values, int n) {
-    /* Idea:
-        qsort the eigenvalues. (fastest & easiest way (?)).
-        Then order the eigenvectors to correspond the eigenvalues order.
-        The last part will take O(n^2) but maybe should be pretty fast because n <= 1000.
-
-        NOTE:
-        We should change the matrix representation. 
-        If so, we can achive O(1) time for swapping between two vectors instead of O(n).
-
-        UPDATE (4.8 21:30)
-        It might be better to use insertion sort! consider it.
-
-        UPDATE (6.8 11:40)
-        Another Idea!
-        We can just sort the eigenvalues!
-        If we sort only the eigenvalues, we can find the K easily.
-        Then we'll copy only the K relevant eigenvectors by iterating over the matrix.
-        The last operation bounded by O(n^2).
-
-        UPDATE (6.8 13:34)
-        Another Idea!
-        We can use the qsort on the matrix itself and just define the comperator as we pleased!
-        A comlexity of O(nlogn) without much effort! plus we get the fast implementation of the qsort.
-        For this idea we shall use the transpose matrix, and make sure the corresponding values are
-        swaps as their eigenvectors are being swap. 
-    */
-
-   double *values_copy;
-   int i, j;
-   double **vectors_T;
-   const int NULL_VALUE = -42;
-    
-    /* Deep copy the eigenvalues */
-    values_copy = calloc(n, sizeof(double*));
-    assert(values_copy != NULL && MEM_ALLOC_ERR);
-    for (i = 0; i < n; i++) {
-        values_copy[i] = values[i];
-    }
-
-    /* Sort the values */   
-    qsort(values, n, sizeof(int), cmpfunc);
-
-    /* Copy the vectors after transpose into an array which allow us to swap rows (columns) in O(1) */
-    vectors_T = calloc(n, sizeof(int *));
-    assert(vectors_T != NULL && MEM_ALLOC_ERR);
-    for (i = 0; i < n; i++) {
-        vectors_T[i] = calloc(n, sizeof(int));
-        assert(vectors_T[i] != NULL && MEM_ALLOC_ERR);
-    }
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            vectors_T[j][i] = vectors[i][j];
-        }
-    }
-
-
-    /* Order the rows (columns) of vectors_T to correspond the *sorted* values */
-    for (i = 0; i < n; i++) {
-        int curr_sorted_value = values[i];
-        for (j = 0; j < n; j++) {
-            int curr_value = values_copy[j];
-            if (curr_value == curr_sorted_value) {
-                /* need to swap */
-                /* TODO: consider extract to outer function */
-                double *tmp = vectors_T[i];
-                vectors_T[i] = vectors_T[j];
-                vectors_T[j] = tmp;
-
-                /* mark the value as visited */
-                values_copy[j] = NULL_VALUE;
-                /* moved to the next sorted value */
-                continue;
-            }
-        }
-    }
-
-    /* copy the sorted rows as sorted columns */
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            vectors[j][i] = vectors_T[i][j];
-        }
-    }
-    
-    for (i = 0; i < n; i++) {
-        free(vectors_T[i]);
-    }
-    free(vectors_T);
-
-}
 
 /* Define a comparator for the qsort function.
    Credit: 'tutorialspoint' */
@@ -631,17 +540,45 @@ void print_vector_as_matrix(double *diag, int n) {
 }
 
 /* Last operations after computing jacobi and his dependencies */
-void finish_spk() {
-    
-    /*  If k doesn't provided (k==0):
-            Determine k */
+void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K) {
+    double **U, *ptr1;
+    double *eigenvalues_sorted;
+    int i;
 
-    /*  Obtain the first k eigenvectors u1, ..., uk
+    /* Deep copy the eigenvalues */
+    eigenvalues_sorted = calloc(N, sizeof(double*));
+    assert(eigenvalues_sorted != NULL && MEM_ALLOC_ERR);
+    for (i = 0; i < N; i++) {
+        eigenvalues_sorted[i] = eigenvalues[i];
+    }
+
+    /* Sort eigenvalues_sorted */
+    qsort(eigenvalues_sorted, N, sizeof(int), cmpfunc);
+
+    /*  If k doesn't provided (k==0) determine k */
+    if (K == 0) {
+        K = get_heuristic(eigenvalues, N);
+    }
+
+    /*  Obtain the first (ordered!) k eigenvectors u1, ..., uk
         Form the matrix U(nxk) which u_i is the i'th column */
 
-    /*  Form T from U by renormalizing each row to have the unit length */
+    /* Allocate memory for the U matrix. nxk. */
+    ptr1 = calloc((N * K), sizeof(double));
+    assert(ptr1 != NULL && MEM_ALLOC_ERR);
+    U = calloc(N, sizeof(double*));
+    assert(U != NULL && MEM_ALLOC_ERR);
+    for (i = 0; i < N; i++) {
+        U[i] = ptr1 + i*K;
+    }
 
-    /*  Traet each row of T as a point in R^k.
+    form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, K, N);     
+
+    /*  Form T from U by renormalizing each row to have the unit length */
+    
+    
+
+    /*  Treat each row of T as a point in R^k.
         cluster them into k clusters with the k-means */
 
     /*  Assign the original points to the clusters */
@@ -649,4 +586,47 @@ void finish_spk() {
     
 }
 
+int get_heuristic(double *eigenvalues, int N) {
+    double max_delta;
+    int max_idx = ((N/2)+1 < N-2)? (N/2)+1 : N-2; /* i is bounded as shown in the pdf */
+    int i, K;
+    double val1, val2, curr_delta;
+
+    for (i = 0; i < max_idx; i++) {
+        val1 = eigenvalues[i];
+        val2 = eigenvalues[i+1];
+        curr_delta = val1 - val2;
+        if (curr_delta > max_delta) {
+            max_delta = curr_delta;
+            K = i;
+        }
+    }
+
+    return K;
+}
+
+void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int K, int N) {
+    double curr_val, curr_sorted_val;
+    const int NULL_VAL = -42; /* define null value when known that eigenvalues are positive */
+    int i, j, r;
+
+    for (i = 0; i < K; i++) {
+        curr_sorted_val = eigenvalues_sorted[i];
+        for (j = 0; j < N; j++) {
+            curr_val = eigenvalues[j];
+            if (curr_val == curr_sorted_val) {
+                /* place the j'th vector in the U's i'th column */
+                for (r = 0; r < N; r++) {
+                    U[r][i] = eigenvectors[r][j]; /* assume the eigenvectors arrage as columns - DOUBLE CHECK IT */
+                }
+
+                /* mark the eigenvalue as "visited" */
+                eigenvalues[j] = NULL_VAL;
+                
+                /* move to the next sorted eigenvalue */
+                break;
+            }
+        }
+    }        
+}
 

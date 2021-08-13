@@ -5,7 +5,7 @@ typedef struct Graph {
     double **weights;
     double **lnorm;
     double *degrees;
-    int n, dim; // n should be N?
+    int N, dim;
 } Graph;
 
 typedef struct DataWrapper1D {
@@ -41,4 +41,7 @@ void print_matrix(double **mat, int rows, int cols);
 void print_vector_as_matrix(double *diag, int n);
 void read_data(Graph *graph, char *file_path);
 void free_graph(Graph *graph, goal goal);
+void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K);
+int get_heuristic(double *eigenvalues, int N);
+void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int K, int N);
 
