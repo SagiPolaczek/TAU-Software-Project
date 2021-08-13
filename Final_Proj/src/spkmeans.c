@@ -541,7 +541,7 @@ void print_vector_as_matrix(double *diag, int n) {
 
 /* Last operations after computing jacobi and his dependencies */
 void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K) {
-    double **U, *ptr1;
+    double **U, *ptr1, **T;
     double *eigenvalues_sorted;
     int i;
 
@@ -572,11 +572,11 @@ void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K) {
         U[i] = ptr1 + i*K;
     }
 
-    form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, K, N);     
+    form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, K);     
 
     /*  Form T from U by renormalizing each row to have the unit length */
-    
-    
+    T = U; /* readability purposes */
+    form_T(T, K, N);
 
     /*  Treat each row of T as a point in R^k.
         cluster them into k clusters with the k-means */
@@ -605,7 +605,7 @@ int get_heuristic(double *eigenvalues, int N) {
     return K;
 }
 
-void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int K, int N) {
+void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int N, int K) {
     double curr_val, curr_sorted_val;
     const int NULL_VAL = -42; /* define null value when known that eigenvalues are positive */
     int i, j, r;
@@ -630,3 +630,24 @@ void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eige
     }        
 }
 
+void form_T(double **U, int N, int K) {
+    int i, j;
+    double vec_len;
+    double *vec, *zero_vec;
+
+    /* init the zero_vec */
+    zero_vec = calloc((K), sizeof(double));
+    assert(zero_vec != NULL && MEM_ALLOC_ERR);
+
+    for (i = 0; i < N; i++) {
+        vec = U[i];
+        /* compute the row vector's length */
+        vec_len = compute_distance(vec, zero_vec, K);
+
+        for (j = 0; j < K; j++) {
+            vec[j] = ( vec[j] / vec_len );
+        }
+    }
+
+    free(zero_vec);
+}
