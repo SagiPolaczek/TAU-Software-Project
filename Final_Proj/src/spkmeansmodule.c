@@ -3,7 +3,7 @@
 #include "spkmeans.h"
 #include "kmeans.h"
 
-static void fit_general(PyObject* self, PyObject* args);
+static void fit_general(PyObject* self, PyObject* args); /* wam ddg lnorm jacobi */
 static PyObject* fit_init_spk(PyObject* self, PyObject* args);
 static void fit_finish_spk(PyObject* self, PyObject* args);
 DataWrapper py_list_to_array(PyObject* py_list);
