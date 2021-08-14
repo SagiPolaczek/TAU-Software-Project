@@ -37,6 +37,8 @@ static void fit_general(PyObject* self, PyObject* args) {
     goal = g;
     
     compute_result(graph, goal); 
+    /* with the new interface:
+    compute_by_goal(&graph, goal); */
 
     /* Free memory */
     free(data_points_wrapper.container);
@@ -78,6 +80,8 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     compute_jacobi(A, N, eigenvectors, eigenvalues);
 
     result = compute_spk(eigenvectors, eigenvalues, N, &K, 1); // maybe will change to compute_T
+    /* with the new interface:
+    result = init_spk_datapoints(&graph) */
 
     /* Convert a two double array into a PyObject */
     py_result = PyList_New(K);
@@ -123,6 +127,8 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
 
     /* Main Algorithm - should call another func here which will call kmeans */
     result = kmeans(data_points, centroids, N, dim, K, max_iter);
+    /* with the new interface:
+    result = get_spk_clusters(data_points, centroids, N, dim, K, max_iter); */
 
     /* Print indices */
     for (i = 0; i < K; i++) {

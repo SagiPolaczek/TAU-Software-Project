@@ -544,8 +544,34 @@ double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, 
         cluster them into k clusters with the k-means */
 
     /*  Assign the original points to the clusters */
+
+    /* NEW FLOW:
+    1) call to init_spk_datapoints
+    2) init K centroids
+    3) call to get_spk_clusters
+    4) print result (indices and final result)
+    NOTE: inputs should change to graph only
+    */
     
     return T;
+}
+
+/* Preforms steps 1-5 of the algorithm */
+double **init_spk_datapoints(Graph *graph) {
+    /* FLOW:
+    1) call compute wam -> ddg -> lnorm -> jacobi -> (?) U -> T
+    2) return T
+    */
+}
+
+/* Preforms steps 6-7 of the algorithm */
+double **get_spk_clusters(double **data_points, double **centroids, int N, int dim, int K, int max_iter) {
+    /* FLOW:
+    1) call kmeans from kmeans.c
+    2) preform step 7 of the algorithm
+    3) return the final result
+    NOTE: the inputs may change during implementation - not sure what else we need for step 7
+    */
 }
 
 int get_heuristic(double *eigenvalues, int N) {
