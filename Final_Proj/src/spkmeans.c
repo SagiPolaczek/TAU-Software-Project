@@ -17,10 +17,9 @@
 /* CLI: k  goal  file_name */
 int main(int argc, char *argv[]) {
     char *goal_string, *file_path;
-    int k, N, i;
+    int k, N;
     goal goal;
     Graph graph = {0};
-    double *ptr1;
     double *eigenvalues, **eigenvectors, **A;
 
     LOG("\n----- DEBUGGING MODE ------\n\n");
@@ -41,16 +40,8 @@ int main(int argc, char *argv[]) {
     if (goal == jacobi) { /* DUPLICATE CODE IN THE MEMORY ALLOCATION */
 
         /* Allocate memory for the eigenvectors & eigenvalues */
-        ptr1 = calloc((N * N), sizeof(double));
-        assert(ptr1 != NULL && MEM_ALLOC_ERR);
-        eigenvectors = calloc(N, sizeof(double*));
-        assert(eigenvectors != NULL && MEM_ALLOC_ERR);
-        for (i = 0; i < N; i++) {
-            eigenvectors[i] = ptr1 + i*N;
-        }
-
-        eigenvalues = calloc(N, sizeof(double));
-        assert(eigenvalues != NULL && MEM_ALLOC_ERR);
+        eigenvectors = calloc_2d_array(N, N);
+        eigenvalues = calloc_1d_array(N);
 
         A = graph.vertices;
         compute_jacobi(A, N, eigenvectors, eigenvalues);
@@ -61,8 +52,7 @@ int main(int argc, char *argv[]) {
         LOG("-- Eigenvalues:\n");
         print_matrix(&eigenvalues, 1, N);
 
-        free(ptr1);
-        free(eigenvectors);
+        free_2d_array(eigenvectors);
         free(eigenvalues);
 
         free_graph(&graph, jacobi);
@@ -104,16 +94,8 @@ int main(int argc, char *argv[]) {
     }
 
     /* Allocate memory for the eigenvectors & eigenvalues */
-    ptr1 = calloc((N * N), sizeof(double));
-    assert(ptr1 != NULL && MEM_ALLOC_ERR);
-    eigenvectors = calloc(N, sizeof(double*));
-    assert(eigenvectors != NULL && MEM_ALLOC_ERR);
-    for (i = 0; i < N; i++) {
-        eigenvectors[i] = ptr1 + i*N;
-    }
-
-    eigenvalues = calloc(N, sizeof(double));
-    assert(eigenvalues != NULL && MEM_ALLOC_ERR);
+    eigenvectors = calloc_2d_array(N, N);
+    eigenvalues = calloc_1d_array(N);
 
     A = graph.lnorm;
     compute_jacobi(A, N, eigenvectors, eigenvalues);
@@ -125,8 +107,7 @@ int main(int argc, char *argv[]) {
         
     /* Print result */
 
-    free(ptr1);
-    free(eigenvectors);
+    free_2d_array(eigenvectors);
     free(eigenvalues);
     free_graph(&graph, spk);
 
@@ -138,8 +119,7 @@ void read_data(Graph *graph, char *file_path) {
     double value;
     char c;
     int first_round = 1;
-    int data_count = 0, dim = 0;
-    double *p;
+    int data_count = 1, dim = 0;
     double **data_points;
     int i, j;
     FILE *ptr = fopen(file_path, "r");
@@ -165,15 +145,8 @@ void read_data(Graph *graph, char *file_path) {
 
     rewind(ptr);
 
-    /* Init a 2-dimentaional array for the data (vectors)*/ 
-    p = calloc((data_count * dim), sizeof(double));
-    assert(p != NULL && MEM_ALLOC_ERR);
-    data_points = calloc(data_count, sizeof(double *));
-    assert(data_points != NULL && MEM_ALLOC_ERR);
-
-    for (i = 0; i < data_count; i++) {
-        data_points[i] = p + i*dim;
-    }
+    /* Init a 2-dimentaional array for the data (vectors)*/
+    data_points = calloc_2d_array(data_count, dim); 
 
     /* Put the data from the stream into the Array */
     for (i = 0; i < data_count; i++) {
@@ -195,7 +168,7 @@ void compute_wam(Graph *graph) {
     double weight, distance;
     double *v1, *v2;
     double **vertices = graph -> vertices;
-    double **weights, *p;
+    double **weights;
 
     LOG("-- Computing WAM --\n");
     
@@ -203,13 +176,8 @@ void compute_wam(Graph *graph) {
     dim = graph->dim;
 
     /* Allocate memory for the WAM */
-    p = calloc((N * N), sizeof(double));
-    assert(p != NULL && MEM_ALLOC_ERR);
-    weights = calloc(N, sizeof(double*));
-    assert(weights != NULL && MEM_ALLOC_ERR);
-    for (i = 0; i < N; i++) {
-        weights[i] = p + i*N;
-    }
+    weights = calloc_2d_array(N, N);
+    
 
     graph->weights = weights;
     
@@ -257,8 +225,7 @@ void compute_ddg(Graph *graph) {
     LOG("-- Computing DDG --\n");
 
     /* Allocate memory for the DDG's "matrix" - represented by vector */
-    ddg = calloc(N, sizeof(double*));
-    assert(ddg != NULL && MEM_ALLOC_ERR);
+    ddg = calloc_1d_array(N);
     graph->degrees = ddg;
 
     for (i = 0; i < N; i++) {
@@ -280,7 +247,7 @@ double compute_degree(double **weights, int v_idx, int n) {
 }
 
 void compute_lnorm(Graph *graph) {
-    double *invsqrt_d, *p;
+    double *invsqrt_d;
     int i, j;
     double **weights = graph -> weights;
     double *degs = graph -> degrees;
@@ -290,14 +257,7 @@ void compute_lnorm(Graph *graph) {
     LOG("-- Computing LNORM --\n");
 
     /* Allocate memory for the Lnorm's matrix */
-    p = calloc((N * N), sizeof(double));
-    assert(p != NULL && MEM_ALLOC_ERR);
-    lnorm = calloc(N, sizeof(double*));
-    assert(lnorm != NULL && MEM_ALLOC_ERR);
-
-    for (i = 0; i < N; i++) {
-        lnorm[i] = p + i*N;
-    }
+    lnorm = calloc_2d_array(N, N);
     graph->lnorm = lnorm;
 
     invsqrt_d = inverse_sqrt_vec(degs, N);
@@ -319,15 +279,14 @@ void compute_lnorm(Graph *graph) {
     return;
 }
 
-double* inverse_sqrt_vec(double *vector, int n) {
+double* inverse_sqrt_vec(double *vector, int N) {
     double *res;
     int i;
 
     /* Consider make it INPLACE */
-    res = calloc(n, sizeof(double*));
-    assert(res != NULL && MEM_ALLOC_ERR);
+    res = calloc_1d_array(N);
     
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < N; i++) {
         res[i] = 1 / (sqrt(vector[i]));
     }
     return res;
@@ -362,7 +321,6 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     double phi;
     double c, s;
     double **A_tag;
-    double *p;
     double s_sq, c_sq;
     double off_diff;
     const int MAX_ITER = 100;
@@ -372,13 +330,7 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     LOG("-- Computing JACOBI --\n");
 
     /* A_tag start as deep copy of A */
-    p = calloc((N * N), sizeof(double));
-    assert(p != NULL && MEM_ALLOC_ERR);
-    A_tag = calloc(N, sizeof(double*));
-    assert(A_tag != NULL && MEM_ALLOC_ERR);
-    for (i = 0; i < N; i++) {
-        A_tag[i] = p + i*N;
-    }
+    A_tag = calloc_2d_array(N, N);
 
     for (i = 0; i < N; i++) {
         for (j = 0; j < N; j++) {
@@ -482,8 +434,7 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     }
 
     /* Free A_tag <3 */
-    free(A_tag[0]);
-    free(A_tag);
+    free_2d_array(A_tag);
     
     return;
 }
@@ -493,25 +444,6 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
    Credit: 'tutorialspoint' */
 int cmp_func (const void * a, const void * b) {
     return ( *(int*)a - *(int*)b );
-}
-
-void free_graph(Graph *graph, goal goal) {
-    LOG("-- FREE GRAPH --\n");
-    free((graph->vertices)[0]);
-    free(graph->vertices);
-    free((graph->weights)[0]);
-    free(graph->weights);
-
-    if (goal == wam) {return;}
-
-    free(graph->degrees);
-
-    if (goal == ddg) {return;}
-
-    free((graph->lnorm)[0]);
-    free(graph->lnorm);
-
-    return;
 }
 
 void print_matrix(double **mat, int rows, int cols) {
@@ -554,13 +486,13 @@ void print_vector_as_matrix(double *diag, int n) {
 
 /* Last operations after computing jacobi and his dependencies */
 double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, int is_python) {
-    double **U, *ptr1, **T;
+    double **U, **T;
     double *eigenvalues_sorted;
     int i;
 
     /* Deep copy the eigenvalues */
-    eigenvalues_sorted = calloc(N, sizeof(double*));
-    assert(eigenvalues_sorted != NULL && MEM_ALLOC_ERR);
+    eigenvalues_sorted = calloc_1d_array(N);
+
     for (i = 0; i < N; i++) {
         eigenvalues_sorted[i] = eigenvalues[i];
     }
@@ -577,13 +509,7 @@ double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, 
         Form the matrix U(nxk) which u_i is the i'th column */
 
     /* Allocate memory for the U matrix. nxk. */
-    ptr1 = calloc((N * (*K)), sizeof(double));
-    assert(ptr1 != NULL && MEM_ALLOC_ERR);
-    U = calloc(N, sizeof(double*));
-    assert(U != NULL && MEM_ALLOC_ERR);
-    for (i = 0; i < N; i++) {
-        U[i] = ptr1 + i*(*K);
-    }
+    U = calloc_2d_array(N, (*K));
 
     form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);     
 
@@ -659,8 +585,7 @@ void form_T(double **U, int N, int K) {
     double *vec, *zero_vec;
 
     /* init the zero_vec */
-    zero_vec = calloc((K), sizeof(double));
-    assert(zero_vec != NULL && MEM_ALLOC_ERR);
+    zero_vec = calloc_1d_array(K);
 
     for (i = 0; i < N; i++) {
         vec = U[i];
@@ -673,4 +598,48 @@ void form_T(double **U, int N, int K) {
     }
 
     free(zero_vec);
+}
+
+double *calloc_1d_array(int size) {
+    double *array;
+    array = calloc(size, sizeof(double));
+    assert(array != NULL && MEM_ALLOC_ERR);
+
+    return array;
+}
+
+double **calloc_2d_array(int rows, int cols) {
+    double *ptr, **array;
+    int i;
+
+    ptr = calloc((rows * cols), sizeof(double));
+    assert(ptr != NULL && MEM_ALLOC_ERR);
+    array = calloc(rows, sizeof(double*));
+    assert(array != NULL && MEM_ALLOC_ERR);
+    for (i = 0; i < rows; i++) {
+        array[i] = ptr + i*cols;
+    }
+
+    return array;
+}
+
+void free_2d_array(double **array) {
+    free(array[0]);
+    free(array);
+}
+
+void free_graph(Graph *graph, goal goal) {
+    LOG("-- FREE GRAPH --\n");
+    free_2d_array(graph->vertices);
+    free_2d_array(graph->weights);
+
+    if (goal == wam) {return;}
+
+    free(graph->degrees);
+
+    if (goal == ddg) {return;}
+
+    free_2d_array(graph->lnorm);
+
+    return;
 }

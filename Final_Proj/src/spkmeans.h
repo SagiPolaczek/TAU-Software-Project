@@ -45,4 +45,6 @@ double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, 
 int get_heuristic(double *eigenvalues, int N);
 void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int N, int K);
 void form_T(double **U, int N, int K);
-
+double *calloc_1d_array(int size);
+double **calloc_2d_array(int rows, int cols);
+void free_2d_array(double **array);
