@@ -1,94 +1,154 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "spkmeans.h"
+#include "kmeans.h"
 
+static void fit_general(PyObject* self, PyObject* args);
+static PyObject* fit_init_spk(PyObject* self, PyObject* args);
+static void fit_finish_spk(PyObject* self, PyObject* args);
+DataWrapper py_list_to_array(PyObject* py_list);
 
-static PyObject* fit_spk(PyObject* self, PyObject* args);
-static PyObject* fit_wam(PyObject* self, PyObject* args);
-static PyObject* fit_ddg(PyObject* self, PyObject* args);
-static PyObject* fit_lnorm(PyObject* self, PyObject* args);
-static PyObject* fit_jacobi(PyObject* self, PyObject* args);
-DataWrapper1D py_list_to_1d_array(PyObject* py_list); // TODO!
-DataWrapper2D py_list_to_2d_array(PyObject* py_list);
+static void fit_general(PyObject* self, PyObject* args) {
+    /* Variables Declarations */
+    PyObject *py_data_points;
+    double **data_points;
+    double *eigenvalues, **eigenvectors, **A;
+    int N, dim, K, max_iter, g;
+    int i, j;
+    goal goal;
+    DataWrapper data_points_wrapper;
+    Graph graph = {0};
 
-/* Goal: SPK */
-static PyObject* fit_spk(PyObject* self, PyObject* args) {
+    if (!PyArg_ParseTuple(args, "Oiiiii", &py_data_points, &N, &dim, &K, &max_iter, &g))
+        return;
     
+    /* Validation */
+    assert(PyList_Check(py_data_points));
+
+    /* Convert Arrays from Python to C */
+    data_points_wrapper = py_list_to_array(py_data_points);
+    data_points = data_points_wrapper.pointers;
+
+    /* Init graph */
+    graph.vertices = data_points;
+    graph.N = N;
+    graph.dim = dim;
+
+    goal = g;
+    
+    compute_result(graph, goal); 
+
+    /* Free memory */
+    free(data_points_wrapper.container);
 }
 
-/* Goal: WAM */
-static PyObject* fit_wam(PyObject* self, PyObject* args) {
+static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     /* Variables Declarations */
-    PyObject *py_vertices, *py_weights, *py_lnorm, *py_degrees;
-    PyObject *py_result, *py_vector; // Assume WAM returns the matrix W
-    double **vertices, **weights, **lnorm, *degrees, **result;
+    PyObject *py_data_points;
+    PyObject *py_result, *py_vector;
+    double **data_points;
+    double *eigenvalues, **eigenvectors, **A, **result;
     int N, dim, K, max_iter;
     int i, j;
-    DataWrapper2D vertices_wrapper, weights_wrapper, lnorm_wrapper; 
-    DataWrapper1D degrees_wrapper;
-    Graph G;
+    DataWrapper data_points_wrapper;
+    Graph graph = {0};
 
-    if (!PyArg_ParseTuple(args, "OOOOiiii", &py_vertices, &py_weights, &py_lnorm,
-    	&py_degrees, &N, &dim, &K, &max_iter))
+    if (!PyArg_ParseTuple(args, "Oiiii", &py_data_points, &N, &dim, &K, &max_iter))
         return NULL;
     
     /* Validation */
-    assert(PyList_Check(py_vertices));
-    assert(PyList_Check(py_weights));
-    assert(PyList_Check(py_lnorm));
-    assert(PyList_Check(py_degrees));
+    assert(PyList_Check(py_data_points));
+
+    /* Convert Arrays from Python to C */
+    data_points_wrapper = py_list_to_array(py_data_points);
+    data_points = data_points_wrapper.pointers;
+
+    /* Init graph */
+    graph.vertices = data_points;
+    graph.N = N;
+    graph.dim = dim;
+
+    compute_wam(&graph);
+    compute_ddg(&graph);
+    compute_lnorm(&graph);
+    
+    eigenvectors = calloc_2d_array(N, N);
+    eigenvalues = calloc_1d_array(N);
+    A = graph.vertices;
+    compute_jacobi(A, N, eigenvectors, eigenvalues);
+
+    result = compute_spk(eigenvectors, eigenvalues, N, &K, 1); // maybe will change to compute_T
+
+    /* Convert a two double array into a PyObject */
+    py_result = PyList_New(K);
+    assert(py_result != NULL && "Problem in generating PyList object");
+    for (i = 0; i < K; i++) {
+        py_vector = PyList_New(dim);
+        assert(py_vector != NULL && "Problem in generating PyList object");
+        for (j = 0; j < dim; j++) {
+            PyList_SET_ITEM(py_vector, j, PyFloat_FromDouble(result[i][j]));
+        }
+        PyList_SET_ITEM(py_result, i, py_vector);
+    }
+
+    free(data_points_wrapper.container);
+    free(result);
+
+    return py_result;
+}
+
+static void fit_finish_spk(PyObject* self, PyObject* args) {
+    /* Variables Declarations */
+    PyObject *py_centroids, *py_data, *py_indices;
+    PyObject *py_result, *py_vector;
+    double **centroids, **data_points, **result;
+    int N, dim, K, max_iter;
+    int i, j;
+    DataWrapper centroids_wrapper, data_points_wrapper;
+
+    if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
+        return;
+    
+    /* Validation */
+    assert(PyList_Check(py_centroids));
+    assert(PyList_Check(py_data));
+    assert(PyList_Check(py_indices));
 
     /* Convert Arrays from python to C */
-    vertices_wrapper = py_list_to_2d_array(py_vertices);
-    weights_wrapper = py_list_to_2d_array(py_weights);
-    lnorm_wrapper = py_list_to_2d_array(py_lnorm); 
-    degrees_wrapper = py_list_to_1d_array(py_degrees);
+    centroids_wrapper = py_list_to_array(py_centroids);
+    data_points_wrapper = py_list_to_array(py_data);
 
-    vertices = vertices_wrapper.pointers;
-    weights = weights_wrapper.pointers;
-    lnorm = lnorm_wrapper.pointers;
-    degrees = degrees_wrapper.pointers;
+    centroids = centroids_wrapper.pointers;
+    data_points = data_points_wrapper.pointers;
 
-    /* Initialize G */
-    G.vertices = vertices;
-    G.weights = weights;
-    G.lnorm = lnorm;
-    G.degrees = degrees;
-    G.N = N;
-    G.dim = dim;
+    /* Main Algorithm - should call another func here which will call kmeans */
+    result = kmeans(data_points, centroids, N, dim, K, max_iter);
 
-    /* Main Algorithm - Assuming returns matrix W */
-    /* result = compute_wam(&G); */ 
-    /* Does not compile since compute_wam is void */
+    /* Print indices */
+    for (i = 0; i < K; i++) {
+        printf("%d", PyList_GET_ITEM(py_indices, i));
+        if (i < K -1) {
+            printf(",");
+        }
+        else {
+            printf("/n");
+        }
+    }
+    /* Print centroids */
+    print_matrix(result, N, K);
 
-    /* NEED TO FINISH */
-
-}
-
-/* Goal: DDG */
-static PyObject* fit_ddg(PyObject* self, PyObject* args) {
-
-}
-
-/* Goal: LNORM */
-static PyObject* fit_lnorm(PyObject* self, PyObject* args) {
-    
-}
-
-/* Goal: JACOBI */
-static PyObject* fit_jacobi(PyObject* self, PyObject* args) {
-    /* mem alloc */
-
-    
+    /* Free Memory */
+    free(centroids_wrapper.container);
+    free(data_points_wrapper.container);
 }
 
 /* Convert PyObject array into a double 2d array */
-DataWrapper2D py_list_to_2d_array(PyObject* py_list) {
+DataWrapper py_list_to_array(PyObject* py_list) {
     int n, m, i, j;
     double **result;
     double *p;
     PyObject *vector, *value;
-    DataWrapper2D data_wrapper;
+    DataWrapper data_wrapper;
 
     n = PyList_Size(py_list);
     m = PyList_Size(PyList_GetItem(py_list, 0));
@@ -118,4 +178,5 @@ DataWrapper2D py_list_to_2d_array(PyObject* py_list) {
     data_wrapper.container = p;
     data_wrapper.pointers = result;
     return data_wrapper;
+
 }

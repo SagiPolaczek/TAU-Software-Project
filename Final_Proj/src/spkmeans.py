@@ -2,19 +2,6 @@ import sys
 import pandas as pd
 import numpy as np
 import myspkmeans as spk
-from enum import Enum
-
-# Goals (enum) definition
-class Goals(Enum):
-    SPK = "spk"
-    WAM = "wam"
-    DDG = "ddg"
-    LNORM = "lnorm"
-    JACOBI = "jacobi"
-
-    def has_value(item):
-        return item in [v.value for v in Goals.__members__.values()]
-
 
 # Read data from input file
 def read_data(file_name):
@@ -35,8 +22,8 @@ def read_data(file_name):
 
 
 # Initialize centroids as described in the kmeanspp algorithm (HW2)
-def init_centroids(data_points, K):
-    N, d = data.shape
+def init_centroids(data_points, N, d, K):
+    
     # Convert the df into an numpy array (speed)
     
     # dataArr = data.to_numpy() -> from HW2. since now we receive python list we to convert differently -> DELETE LATER
@@ -110,47 +97,23 @@ def main():
         goal = inputs[3]
         file_name = inputs[4]
 
-    assert not Goals.has_value(goal), "Invalid goal input!"
-
     data_points = read_data(file_name)
 
-    # TODO: can we assume unempty input or validate?
-    N = len(data_points)
-    dim = len(data_points[0])
+    N, d = data_points.shape
 
     assert K < N, "K must be smaller than N!"
 
-    initial_centroids, centroids_indices = init_centroids(data_points, K)
-
-    # TODO: can replace ENUM implementation
-    # TODO: consider match-case, depends on python version on the server
-    # TODO: add inputs
     if goal == "spk":
-        result = spk.fit_spk()
+       data_points = spk.fit_init_spk()
+       initial_centroids, centroids_indices = init_centroids(data_points, N, d, d) # K = d
+       spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, d, d, max_iter) # K = d
     elif goal == "wam":
-        result = spk.fit_wam()
+        spk.fit_general(data_points, N, d, K, max_iter, int('w'))
     elif goal == "ddg":
-        result = spk.fit_ddg()
+        spk.fit_general(data_points, N, d, K, max_iter, int('d'))
     elif goal == "lnorm":
-        result = spk.fit_lnorm()
+        spk.fit_general(data_points, N, d, K, max_iter, int('l'))
     elif goal == "jacobi":
-        result = spk.fit_jacobi()
+        spk.fit_general(data_points, N, d, K, max_iter, int('j'))
     else:
-        assert False, "Invalid goal input!" # will replace the enum
-    
-    if goal == "spk":
-        # Print indices centroids
-        for i in range(len(centroids_indices)):
-            if (i == len(centroids_indices) -1):
-                print(centroids_indices[i])
-            else:
-                print(centroids_indices[i], end=",")
-
-    # Print centroids \ required matrix
-    for i in range(len(result)):
-        for j in range(len(result[i])):
-            if(j == len(result[i])-1):
-                print(np.round(result[i][j], 4))
-            else:
-                print(np.round(result[i][j], 4), end=",")
-    
+        assert False, "Invalid goal input!"
