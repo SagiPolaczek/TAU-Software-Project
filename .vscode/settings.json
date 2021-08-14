@@ -4,5 +4,6 @@
         "complex": "c",
         "iterator": "c",
         "spkmeans.h": "c"
-    }
+    },
+    "git.ignoreLimitWarning": true
 }

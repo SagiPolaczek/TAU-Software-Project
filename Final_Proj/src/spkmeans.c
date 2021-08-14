@@ -568,7 +568,7 @@ void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K) {
     /* Sort eigenvalues_sorted */
     qsort(eigenvalues_sorted, N, sizeof(int), cmp_func);
 
-    /*  If k doesn't provided (k==0) determine k */
+    /*  If K doesn't provided (k==0) determine k */
     if (K == 0) {
         K = get_heuristic(eigenvalues, N);
     }
@@ -618,6 +618,7 @@ int get_heuristic(double *eigenvalues, int N) {
     return K;
 }
 
+/* Elaborate */
 void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int N, int K) {
     double curr_val, curr_sorted_val;
     const int NULL_VAL = -42; /* define null value when known that eigenvalues are positive */
