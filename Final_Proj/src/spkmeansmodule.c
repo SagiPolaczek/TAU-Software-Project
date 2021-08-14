@@ -1,5 +1,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+
 #include "spkmeans.h"
 #include "kmeans.h"
 
@@ -36,7 +37,8 @@ static void fit_general(PyObject* self, PyObject* args) {
 
     goal = g;
     
-    compute_result(graph, goal); 
+    /* compute_result(graph, goal); */
+
     /* with the new interface:
     compute_by_goal(&graph, goal); */
 
@@ -70,18 +72,7 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     graph.N = N;
     graph.dim = dim;
 
-    compute_wam(&graph);
-    compute_ddg(&graph);
-    compute_lnorm(&graph);
-    
-    eigenvectors = calloc_2d_array(N, N);
-    eigenvalues = calloc_1d_array(N);
-    A = graph.vertices;
-    compute_jacobi(A, N, eigenvectors, eigenvalues);
-
-    result = compute_spk(eigenvectors, eigenvalues, N, &K, 1); // maybe will change to compute_T
-    /* with the new interface:
-    result = init_spk_datapoints(&graph) */
+    result = init_spk_datapoints(&graph, &K);
 
     /* Convert a two double array into a PyObject */
     py_result = PyList_New(K);

@@ -1,3 +1,5 @@
+#include "kmeans.h"
+
 /* Structures Declarations */
 typedef struct Graph {
     double **vertices;
@@ -6,11 +8,6 @@ typedef struct Graph {
     double *degrees;
     int N, dim;
 } Graph;
-
-typedef struct DataWrapper {
-    double **pointers;
-    double *container;
-} DataWrapper;
 
 typedef enum goal { spk = (int)'s', 
                     wam = (int)'w',

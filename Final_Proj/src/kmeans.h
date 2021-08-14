@@ -1,5 +1,4 @@
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
+#pragma once
 
 /* Structures Declarations */
 struct DataWrapper {
@@ -14,10 +13,14 @@ struct Cluster{
 };
 typedef struct Cluster Cluster;
 
+typedef struct DataPoint {
+    double *vector;
+    int cluster_idx;
+} DataPoint;
+
+
 /* Functions Declarations */
 double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter);
-static PyObject* fit(PyObject* self, PyObject* args);
-DataWrapper py_list_to_array(PyObject* py_list);
 Cluster* init_clusters(int K, int dim);
 int find_closest_centroid(double **centroids, double *data_point, int K, int d);
 double compute_distance(double *u, double *v, int dim);

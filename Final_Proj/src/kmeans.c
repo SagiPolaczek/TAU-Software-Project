@@ -156,6 +156,7 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
     cluster.count[0] += 1;
 }
 
+
 /* Python Staff */
 static PyMethodDef _methods[] = {
     {"fit", (PyCFunction)fit, METH_VARARGS, PyDoc_STR("Our SAVAGE Program")},
