@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     read_data(&graph, file_path);
     N = graph.N;
     
-    if (goal == jacobi) { /* DUPLICATE CODE IN THE MEMORY ALLOCATION */
+    if (goal == jacobi) { 
 
         /* Allocate memory for the eigenvectors & eigenvalues */
         eigenvectors = calloc_2d_array(N, N);
@@ -156,6 +156,9 @@ void read_data(Graph *graph, char *file_path) {
         }
     }
     fclose(ptr);
+
+    print_matrix(data_points, data_count, data_count);
+    printf("N=%d, dim=%d\n", data_count, dim);
 
     graph->vertices = data_points;
     graph->dim = dim;
@@ -328,7 +331,8 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     int iter_count;
 
     LOG("-- Computing JACOBI --\n");
-
+    print_matrix(A, N, N);
+    printf("N=%d\n", N);
     /* A_tag start as deep copy of A */
     A_tag = calloc_2d_array(N, N);
 
@@ -344,6 +348,8 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
             eigen_vecs[i][j] = (i == j);
         }
     }
+
+    LOG("HERE1\n");
     
     iter_count = 0;
     while(is_not_diag) {
@@ -362,12 +368,18 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
             }
         }
 
+        LOG("HERE2\n");
 
         i = max_row;
         j = max_col;
-
+        printf("j=%d, i=%d\n", j,i);
         /* Obtain c,s (P) */
+        LOG("HERE3\n");
+        printf("j=%d, i=%d\n", j,i);
+        print_matrix(A, N, N);
         phi = A[j][i];
+        
+        
         phi = 0.5*atan2(-2*A[i][j],A[j][j] - A[i][i]); /* Internet ??? */
         s = sin(phi);
         c = cos(phi);
@@ -375,23 +387,25 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
         /* Relation between A and A_tag */
         i = max_row;
         j = max_col;
+        LOG("HERE4\n");
         for (r = 0; r < N; r++) {
             if ((r != i) && (r != j)) {
                 A_tag[r][i] = c*A[r][i] - s*A[r][j];
                 A_tag[r][j] = c*A[r][j] + s*A[r][i];
             }
         }
+        LOG("HERE5\n");
         c_sq = pow(c, 2);
         s_sq = pow(s, 2);
         A_tag[i][i] = c_sq*A[i][i] + s_sq*A[j][j] - 2*s*c*A[i][j];
         A_tag[j][j] = s_sq*A[i][i] + c_sq*A[j][j] + 2*s*c*A[i][j];
-        A_tag[i][j] = (c_sq - s_sq)*A[i][j] + s*c*(A[i][i] - A[j][j]); /* => =0 */
+        A_tag[i][j] = 0 ; /* (c_sq - s_sq)*A[i][j] + s*c*(A[i][i] - A[j][j]) => =0 */
 
         /* Update Eigenvectors' matrix */
         /* TO-DO: Check & fix! what if i=j? */ 
         for (r = 0; r < N; r++) {
-                eigen_vecs[r][j] = c*eigen_vecs[r][i] - s*eigen_vecs[r][j];
-                eigen_vecs[r][i] = c*eigen_vecs[r][j] + s*eigen_vecs[r][i];
+                eigen_vecs[r][i] = c*eigen_vecs[r][i] - s*eigen_vecs[r][j];
+                eigen_vecs[r][j] = c*eigen_vecs[r][j] + s*eigen_vecs[r][i];
         }
 
         /* Checking for Convergence */
@@ -630,9 +644,11 @@ void free_2d_array(double **array) {
 
 void free_graph(Graph *graph, goal goal) {
     LOG("-- FREE GRAPH --\n");
-    free_2d_array(graph->vertices);
-    free_2d_array(graph->weights);
 
+    free_2d_array(graph->vertices);
+    if (goal == jacobi) {return;}
+
+    free_2d_array(graph->weights);
     if (goal == wam) {return;}
 
     free(graph->degrees);
@@ -640,6 +656,7 @@ void free_graph(Graph *graph, goal goal) {
     if (goal == ddg) {return;}
 
     free_2d_array(graph->lnorm);
+    LOG("HERE\n");
 
     return;
 }
