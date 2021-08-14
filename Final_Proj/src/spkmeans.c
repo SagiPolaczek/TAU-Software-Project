@@ -553,7 +553,7 @@ void print_vector_as_matrix(double *diag, int n) {
 }
 
 /* Last operations after computing jacobi and his dependencies */
-void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K) {
+double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, int is_python) {
     double **U, *ptr1, **T;
     double *eigenvalues_sorted;
     int i;
@@ -570,33 +570,42 @@ void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K) {
 
     /*  If K doesn't provided (k==0) determine k */
     if (K == 0) {
-        K = get_heuristic(eigenvalues, N);
+        *K = get_heuristic(eigenvalues, N);
     }
 
     /*  Obtain the first (ordered!) k eigenvectors u1, ..., uk
         Form the matrix U(nxk) which u_i is the i'th column */
 
     /* Allocate memory for the U matrix. nxk. */
-    ptr1 = calloc((N * K), sizeof(double));
+    ptr1 = calloc((N * (*K)), sizeof(double));
     assert(ptr1 != NULL && MEM_ALLOC_ERR);
     U = calloc(N, sizeof(double*));
     assert(U != NULL && MEM_ALLOC_ERR);
     for (i = 0; i < N; i++) {
-        U[i] = ptr1 + i*K;
+        U[i] = ptr1 + i*(*K);
     }
 
-    form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, K);     
+    form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);     
 
     /*  Form T from U by renormalizing each row to have the unit length */
     T = U; /* readability purposes */
-    form_T(T, K, N);
+    form_T(T, *K, N);
+
+    /* 
+    Python quit here {
+        return T
+        }
+    */
+   if (is_python) {
+       return T;
+   }
 
     /*  Treat each row of T as a point in R^k.
         cluster them into k clusters with the k-means */
 
     /*  Assign the original points to the clusters */
     
-    
+    return T;
 }
 
 int get_heuristic(double *eigenvalues, int N) {

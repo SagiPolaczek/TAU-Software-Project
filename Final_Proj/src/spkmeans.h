@@ -41,7 +41,7 @@ void print_matrix(double **mat, int rows, int cols);
 void print_vector_as_matrix(double *diag, int n);
 void read_data(Graph *graph, char *file_path);
 void free_graph(Graph *graph, goal goal);
-void compute_spk(double **eigenvectors, double *eigenvalues, int N, int K);
+double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, int is_python);
 int get_heuristic(double *eigenvalues, int N);
 void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int N, int K);
 void form_T(double **U, int N, int K);

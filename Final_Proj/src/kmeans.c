@@ -5,53 +5,106 @@
 
 #include "kmeans.h"
 
-
-/* Main Function */
-int main(int argc, char *argv[]) 
+/* Python <3 */
+static PyObject* fit(PyObject* self, PyObject* args)
 {
     /* Variables Declarations */
-    int K, max_iter;
-    int data_count, dim = 0;
-    int i;
-    int seen_changes, count_iter, cluster_index;
-    double **data_points, **centroids;
-    double *data_point;
-    double *data_container, *centroids_container;
-    InputData input_data;
-    CentroidsWrapper centroids_wrapper;
-    Cluster *clusters;
+    PyObject *py_centroids, *py_data, *py_indices;
+    PyObject *py_result, *py_vector;
+    double **centroids, **data_points, **result;
+    int N, dim, K, max_iter;
+    int i, j;
+    DataWrapper centroids_wrapper, data_points_wrapper;
 
-    /* Manage Input */
-    assert((argc == 2 || argc == 3) && "The program can have only 2 or 3 arguments!");
+    if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
+        return NULL;
     
-    assert(isPositiveNumber(argv[1]) && "Arguments must be a positive numbers!");
-    K = atoi(argv[1]);
-    assert(K > 0 && "K must be positive!");
-    
-    
-    max_iter = 200;
-    if (argc == 3) {
-        assert(isPositiveNumber(argv[2]) && "Arguments must be a positive numbers!");
-        max_iter = atoi(argv[2]);
-        assert(max_iter >= 0 && "Max Iterations must be non-negative!");
+    /* Validation */
+    assert(PyList_Check(py_centroids));
+    assert(PyList_Check(py_data));
+    assert(PyList_Check(py_indices));
+
+    /* Convert Arrays from python to C */
+    centroids_wrapper = py_list_to_array(py_centroids);
+    data_points_wrapper = py_list_to_array(py_data);
+
+    centroids = centroids_wrapper.pointers;
+    data_points = data_points_wrapper.pointers;
+
+    /* Main Algorithm */
+    result = kmeans(data_points, centroids, N, dim, K, max_iter);
+
+
+    /* Convert a two double array into a PyObject */
+    py_result = PyList_New(K);
+    assert(py_result != NULL && "Problem in generating PyList object");
+    for (i = 0; i < K; i++) {
+        py_vector = PyList_New(dim);
+        assert(py_vector != NULL && "Problem in generating PyList object");
+        for (j = 0; j < dim; j++) {
+            PyList_SET_ITEM(py_vector, j, PyFloat_FromDouble(result[i][j]));
+        }
+        PyList_SET_ITEM(py_result, i, py_vector);
     }
 
-    /* Read data to a 2-Dimentional matrix () */
-    input_data = read_data();
+    /* Free Memory */
+    free(centroids_wrapper.container);
+    free(data_points_wrapper.container);
+    free(result);
 
-    data_points = input_data.data;
-    dim = input_data.dim;
-    data_count = input_data.data_count;
-    data_container = input_data.container;
+    return py_result;
+}
+
+/* Convert PyObject array into a double 2d array */
+DataWrapper py_list_to_array(PyObject* py_list) {
+    int n, m, i, j;
+    double **result;
+    double *p;
+    PyObject *vector, *value;
+    DataWrapper data_wrapper;
+
+    n = PyList_Size(py_list);
+    m = PyList_Size(PyList_GetItem(py_list, 0));
+
+    /* Init a 2-dimentaional array for the result */ 
+    p = calloc((n * m), sizeof(double));
+    assert(p != NULL);
+    result = calloc(n, sizeof(double*));
+    assert(result != NULL);
+
+    for (i = 0; i < n; i++) {
+        result[i] = p + i*m;
+    }
     
-    /* The algorithm required K < N */ 
-    assert(K < data_count && "K must be smaller than N!");
+    /* Put the data from the PyObject into the Array */
+    for (i = 0; i < n; i++) {
+        vector = PyList_GetItem(py_list, i);
+        assert(PyList_Check(vector));
+        for (j = 0; j < m; j++) {
+            value = PyList_GetItem(vector, j);
+            assert(PyFloat_Check(value));
+            result[i][j] = PyFloat_AsDouble(value);
+        }
+    }
+    
+    /* Pass the two array so we can free them both later */
+    data_wrapper.container = p;
+    data_wrapper.pointers = result;
+    return data_wrapper;
 
-    /* Initalize centroids and clusters*/
-    centroids_wrapper = init_centroids(data_points, K, dim);
-    centroids = centroids_wrapper.centroids;
-    centroids_container = centroids_wrapper.container;
+}
 
+
+
+/* Main Function */
+double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter) 
+{
+    /* Variables Declarations */
+    int i;
+    int seen_changes, count_iter, cluster_index;
+    double *data_point;
+    Cluster *clusters;
+        
     clusters = init_clusters(K, dim);
 
     /* Main Algorithm's Loop */
@@ -61,7 +114,7 @@ int main(int argc, char *argv[])
     while ((seen_changes == 1) && (count_iter < max_iter)) {
         count_iter++;
         
-        for (i = 0; i < data_count; i++) {
+        for (i = 0; i < N; i++) {
             data_point = data_points[i];
             cluster_index = find_closest_centroid(centroids, data_point, K, dim);
             add_datapoint_to_cluster(clusters, cluster_index, data_point, dim);            
@@ -70,108 +123,13 @@ int main(int argc, char *argv[])
         seen_changes = update_centroids(centroids, clusters, K, dim);
     }
 
-    /* Print centroids */
-    print_centroids(centroids, K, dim);
-
     /* Free memory */
-    free(data_points);
-    free(data_container);
-    free(centroids);
-    free(centroids_container);
     free(clusters);
 
-    return 0;
+    return centroids;
 }
 
-InputData read_data() {
-    /* Variables Declarations */
-    InputData data;
-    double value;
-    int data_count = 0, dim = 0;
-    char c;
-    double *p;
-    double **data_points;
-    int i, j;
-    int first_round =1;
-
-    /* Scan data from stdin TO COUNT dim and data_count */
-    while (scanf("%lf%c", &value, &c) == 2)
-    {
-        /* Get dimention */
-        if (first_round == 1) {
-            dim++;
-        }
-
-        if (c == '\n') 
-        {
-            first_round = 0;
-            /* Keep track on the vectors' amount */
-            data_count++;
-        }        
-    }
-    /* Rewind to the beginning of the data stream */
-    rewind(stdin);
-
-    /* Init a 2-dimentaional array for the data */ 
-    p = calloc((data_count * dim), sizeof(double));
-    assert(p != NULL);
-
-    data_points = calloc(data_count, sizeof(double *));
-    assert(data_points != NULL);
-
-    for (i = 0; i < data_count; i++) {
-        data_points[i] = p + i*dim;
-    }
-    
-    /* Put the data from the stream into the Array */
-    for (i = 0; i < data_count; i++) {
-        for (j = 0; j < dim; j++) {
-            scanf("%lf%c", &value, &c);
-            data_points[i][j] = value;
-        }
-    }
-    
-    /* Load into the returning object */
-    data.data_count = data_count;
-    data.dim = dim;
-    data.data = data_points;
-    data.container = p;
-
-    return data;
-}
-
-CentroidsWrapper init_centroids(double **data_points, int K, int dim){
-    /* Variables Declarations */
-    double *p;
-    double **centroids;
-    int i, j;
-    CentroidsWrapper wrapper;
-
-    /* Allocate space and define centroids */
-    p = calloc((K * dim), sizeof(double));
-    assert(p != NULL);
-
-    centroids = calloc(K, sizeof(double *));
-    assert(centroids != NULL);
-
-    for (i = 0; i < K; i++) {
-        centroids[i] = p + i*dim;
-    }
-
-    /* Put the first K data points into centroids */
-    for (i = 0; i < K; i++) {
-        for (j = 0; j < dim; j++) {
-            centroids[i][j] = data_points[i][j];
-        }
-    }
-
-    wrapper.centroids = centroids;
-    wrapper.container = p;
-
-    return wrapper;
-}
-
-Cluster *init_clusters(int K, int dim) {
+Cluster* init_clusters(int K, int dim) {
     /* Variables Declarations */
     Cluster *clusters;
     int i;
@@ -290,40 +248,22 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
     cluster.count[0] += 1;
 }
 
-void print_centroids(double **centroids, int K, int dim) {
-    /* Variables Declarations */
-    double *centroid;
-    double data_point;
-    int i, j;
+/* Python Staff */
+static PyMethodDef _methods[] = {
+    {"fit", (PyCFunction)fit, METH_VARARGS, PyDoc_STR("Our SAVAGE Program")},
+    {NULL, NULL, 0, NULL}   /* sentinel */
+};
 
-    /* Loop throughtout the centroids' data */
-    for (i = 0; i < K; i++) {
-        centroid = centroids[i];
-        for (j = 0; j < dim; j++) {
-            data_point = centroid[j];
-            printf("%.4f", data_point);
-            if (j < dim - 1) {
-                /* seperate by comma adjecents data points */
-                printf(",");
-            }
-        }
-        
-        /* seperate by new line adjecents centroids */
-        printf("\n");
-        
-    }
-}
+static struct PyModuleDef _moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "mykmeanssp",
+    NULL,
+    -1,
+    _methods
+};
 
-int isPositiveNumber(char* arg) {
-    /* Variables Declarations */
-    int i, n;
-    
-    n = strlen(arg);
-    for (i = 0; i < n; i++) {
-        /* Check if arg[i] in {0,...,9} by comparing ASCII values */
-        if (arg[i] < 48 || arg[i] > 57) {
-            return 0;
-        }
-    }
-    return 1;
+PyMODINIT_FUNC
+PyInit_mykmeanssp(void)
+{
+    return PyModule_Create(&_moduledef);
 }

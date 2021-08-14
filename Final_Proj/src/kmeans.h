@@ -1,17 +1,12 @@
-/* Structures Declarations */
-struct InputData {
-    double **data;
-    int dim;
-    int data_count;
-    double *container;
-};
-typedef struct InputData InputData;
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
-struct CentroidsWrapper {
-    double **centroids;
+/* Structures Declarations */
+struct DataWrapper {
+    double **pointers;
     double *container;
 };
-typedef struct CentroidsWrapper CentroidsWrapper;
+typedef struct DataWrapper DataWrapper;
 
 struct Cluster{
     double *vector_sum;
@@ -19,13 +14,12 @@ struct Cluster{
 };
 typedef struct Cluster Cluster;
 
-/* Functions Declarations */ 
-InputData read_data();
-CentroidsWrapper init_centroids(double **data_points, int K, int dim);
-Cluster *init_clusters(int K, int dim);
+/* Functions Declarations */
+double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter);
+static PyObject* fit(PyObject* self, PyObject* args);
+DataWrapper py_list_to_array(PyObject* py_list);
+Cluster* init_clusters(int K, int dim);
 int find_closest_centroid(double **centroids, double *data_point, int K, int d);
 double compute_distance(double *u, double *v, int dim);
 int update_centroids(double **centroids, Cluster *clusters, int K, int dim);
 void add_datapoint_to_cluster(Cluster *clusters, int cluster_index, double *data_point, int dim);
-void print_centroids(double **centroids, int K, int dim);
-int isPositiveNumber(char* arg);

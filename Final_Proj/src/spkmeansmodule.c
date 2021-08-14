@@ -77,6 +77,8 @@ static PyObject* fit_lnorm(PyObject* self, PyObject* args) {
 
 /* Goal: JACOBI */
 static PyObject* fit_jacobi(PyObject* self, PyObject* args) {
+    /* mem alloc */
+
     
 }
 
