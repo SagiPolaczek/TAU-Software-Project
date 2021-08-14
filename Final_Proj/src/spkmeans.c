@@ -498,11 +498,26 @@ void print_vector_as_matrix(double *diag, int n) {
     }
 }
 
-/* Last operations after computing jacobi and his dependencies */
-double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, int is_python) {
+/* Preforms steps 1-5 of the algorithm */
+double **init_spk_datapoints(Graph *graph, int *K) {
+    double **eigenvectors, *eigenvalues, *eigenvalues_sorted;
+    int N, i;
     double **U, **T;
-    double *eigenvalues_sorted;
-    int i;
+
+    /* FLOW:
+    1) call compute wam -> ddg -> lnorm -> jacobi -> (?) U -> T
+    2) return T
+    */
+    compute_wam(graph);
+    compute_ddg(graph);
+    compute_lnorm(graph);
+
+    /* Allocate memory for the eigenvectors & eigenvalues */
+    N = graph->N;
+    eigenvectors = calloc_2d_array(N, N);
+    eigenvalues = calloc_1d_array(N);
+
+    compute_jacobi(graph->lnorm, N, eigenvectors, eigenvalues);
 
     /* Deep copy the eigenvalues */
     eigenvalues_sorted = calloc_1d_array(N);
@@ -528,40 +543,14 @@ double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, 
     form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);     
 
     /*  Form T from U by renormalizing each row to have the unit length */
-    T = U; /* readability purposes */
+    T = U;
     form_T(T, *K, N);
 
-    /* 
-    Python quit here {
-        return T
-        }
-    */
-   if (is_python) {
-       return T;
-   }
-
-    /*  Treat each row of T as a point in R^k.
-        cluster them into k clusters with the k-means */
-
-    /*  Assign the original points to the clusters */
-
-    /* NEW FLOW:
-    1) call to init_spk_datapoints
-    2) init K centroids
-    3) call to get_spk_clusters
-    4) print result (indices and final result)
-    NOTE: inputs should change to graph only
-    */
+    free(eigenvalues_sorted);
+    free(eigenvalues);
+    free_2d_array(eigenvectors);
     
     return T;
-}
-
-/* Preforms steps 1-5 of the algorithm */
-double **init_spk_datapoints(Graph *graph) {
-    /* FLOW:
-    1) call compute wam -> ddg -> lnorm -> jacobi -> (?) U -> T
-    2) return T
-    */
 }
 
 /* Preforms steps 6-7 of the algorithm */
@@ -572,6 +561,11 @@ double **get_spk_clusters(double **data_points, double **centroids, int N, int d
     3) return the final result
     NOTE: the inputs may change during implementation - not sure what else we need for step 7
     */
+
+
+   /* for compilation purposes, delete when complete function */
+   printf("%f%f%d%d%d%d", data_points[0][0], centroids[0][0], N, dim, K, max_iter);
+   return data_points;
 }
 
 int get_heuristic(double *eigenvalues, int N) {
@@ -589,7 +583,6 @@ int get_heuristic(double *eigenvalues, int N) {
             K = i;
         }
     }
-
     return K;
 }
 
