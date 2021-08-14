@@ -43,3 +43,6 @@ double **compute_spk(double **eigenvectors, double *eigenvalues, int N, int *K, 
 void compute_spk(Graph graph) */
 double **init_spk_datapoints(Graph *graph);
 double **get_spk_clusters(double **data_points, double **centroids, int N, int dim, int K, int max_iter);
+double *calloc_1d_array(int size);
+double **calloc_2d_array(int rows, int cols);
+void free_2d_array(double **array);
