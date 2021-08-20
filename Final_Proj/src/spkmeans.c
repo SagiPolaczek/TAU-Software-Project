@@ -8,13 +8,27 @@
 #include "debugger.h"
 
 #define MEM_ALLOC_ERR "Fail to allocate memory."
+#define ERR_MSG "An Error Has Occured"
 
 /*
-    TODO: 
-    * Put the memory allocations into the functions themselves.
+    TODO:
+    - Add files 'utils.c','utils.h' and move functions to them.
+    - Document more.
+    - Optimization!
+    - Format: maximum line length: 80, maximum lines in a function: 60~
+    - Check if we free memory ASAP.
+    - 
+
+    * Search 'TODO' for other tasks
+    * Add 'TODO' throughout the code if there is any task :) 
 */
 
-/* CLI: k  goal  file_name */
+
+
+/*
+    Command Line Interface in the following format:
+    K, goal, file_name
+*/
 int main(int argc, char *argv[]) {
     char *goal_string, *file_path;
     int k, N;
@@ -23,10 +37,6 @@ int main(int argc, char *argv[]) {
     double *eigenvalues, **eigenvectors, **A;
 
     LOG("\n----- DEBUGGING MODE ------\n\n");
-
-
-    assert(argc == 4 && "Invalid arguments amount!\nOnly 3 arguments are allowed.");
-    /* "You can assume that all input files and arguments are valid" - No need for further checks */
     
     k = atoi(argv[1]);
     goal_string = argv[2];
@@ -47,10 +57,11 @@ int main(int argc, char *argv[]) {
         compute_jacobi(A, N, eigenvectors, eigenvalues);
 
         /* Print eigenvectors & eigenvalues */
-        LOG("-- Eigenvectors:\n");
-        print_matrix(eigenvectors, N, N);
         LOG("-- Eigenvalues:\n");
         print_matrix(&eigenvalues, 1, N);
+
+        LOG("-- Eigenvectors:\n");
+        print_transpose_matrix(eigenvectors, N, N);
 
         free_2d_array(eigenvectors);
         free(eigenvalues);
@@ -114,7 +125,9 @@ int main(int argc, char *argv[]) {
     return 42;
 }
 
-/* Read the file and contain the data inplace in the graph */
+/*
+    Read the file and store the data in the graph
+*/
 void read_data(Graph *graph, char *file_path) {
     double value;
     char c;
@@ -123,7 +136,11 @@ void read_data(Graph *graph, char *file_path) {
     double **data_points;
     int i, j;
     FILE *ptr = fopen(file_path, "r");
-    /* assert(ptr != NULL && "Could not load file"); */
+    if (ptr == NULL) {
+        printf(ERR_MSG);
+        exit(1);
+    }
+    
 
     LOG("-- Reading Data --\n");
 
@@ -157,15 +174,15 @@ void read_data(Graph *graph, char *file_path) {
     }
     fclose(ptr);
 
-    print_matrix(data_points, data_count, data_count);
-    printf("N=%d, dim=%d\n", data_count, dim);
-
     graph->vertices = data_points;
     graph->dim = dim;
     graph->N = data_count;    
     return;
 }
 
+/*
+    Compute the Weighted Adjacency Matrix and store it in the graph.
+*/
 void compute_wam(Graph *graph) {
     int i, j, N, dim;
     double weight, distance;
@@ -199,6 +216,10 @@ void compute_wam(Graph *graph) {
     return;
 }
 
+/*
+    Compute the distance between the two vector.
+    The vectors have 'dim' as dimention.
+*/
 double compute_distance(double *vec1, double *vec2, int dim) {
     /* Variables Declarations */
     int i;
@@ -213,19 +234,24 @@ double compute_distance(double *vec1, double *vec2, int dim) {
     return res;
 }
 
-/* 
-TO DO:
-elaborate why we chose to represent the DDG with a vector instead of a matrix.
-and how it affects the other functions
+/*
+    Compute the Diagonal Degree Matrix and store it in the graph.
+
+    NOTE:
+    We chose to store the matrix in an array data structure because
+    all the entries are zero except from the diagonal. So a N dimentional
+    vector is sufficient.
+    It required us to define special functions for multiplication and printing,
+    where we refer DDG's vector as a matrix.
 */
 void compute_ddg(Graph *graph) {
-    int i;
+    int i, N;
     double deg;
-    double **weights = graph -> weights;
-    int N = graph -> N;
-    double *ddg;
+    double **weights, *ddg;
 
     LOG("-- Computing DDG --\n");
+    weights = graph -> weights;
+    N = graph -> N;
 
     /* Allocate memory for the DDG's "matrix" - represented by vector */
     ddg = calloc_1d_array(N);
@@ -238,6 +264,9 @@ void compute_ddg(Graph *graph) {
     return;
 }
 
+/*
+    Compute the degree of a vertex in the graph.
+*/
 double compute_degree(double **weights, int v_idx, int n) {
     int i;
     double deg = 0;
@@ -249,6 +278,9 @@ double compute_degree(double **weights, int v_idx, int n) {
     return deg;
 }
 
+/*
+    Compute the Normalized Graph Laplacian (Lnorm matrix).
+*/
 void compute_lnorm(Graph *graph) {
     double *invsqrt_d;
     int i, j;
@@ -295,7 +327,10 @@ double* inverse_sqrt_vec(double *vector, int N) {
     return res;
 }
 
-/* inplace */
+/*
+    Compute multiplication of: ' VECTOR * MATRIX '
+    when the 'VECTOR' is a diagonal matrix A such that A[i][i]=V[i]
+*/
 void multi_vec_mat(double *vec, double **mat, int n, double **res) {
     int i, j;
 
@@ -306,6 +341,10 @@ void multi_vec_mat(double *vec, double **mat, int n, double **res) {
     }
 }
 
+/*
+    Compute multiplication of: ' MATRIX * VECTOR '
+    when the 'VECTOR' is a diagonal matrix A such that A[i][i]=V[i]
+*/
 void multi_mat_vec(double **mat, double *vec, int n, double **res) {
     int i, j;
 
@@ -316,23 +355,25 @@ void multi_mat_vec(double **mat, double *vec, int n, double **res) {
     } 
 }
 
+/*
+    TODO:
+    Elaborate & split to several functions (sagi).
+*/
 void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) {
     int is_not_diag = 1;
     int i, j, r;
     double max_entry, curr_entry;
     int max_row, max_col;
-    double phi;
-    double c, s;
-    double **A_tag;
-    double s_sq, c_sq;
+    int sign_theta;
+    double theta, c, s, t, s_sq, c_sq;
+    double **A_tag, **eigen_vecs_dcopy;
     double off_diff;
+    int iter_count;
     const int MAX_ITER = 100;
     const double EPS = 0.001;
-    int iter_count;
 
     LOG("-- Computing JACOBI --\n");
-    print_matrix(A, N, N);
-    printf("N=%d\n", N);
+
     /* A_tag start as deep copy of A */
     A_tag = calloc_2d_array(N, N);
 
@@ -349,7 +390,9 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
         }
     }
 
-    LOG("HERE1\n");
+    /* Eigenvaluse deep copy */
+    eigen_vecs_dcopy = calloc_2d_array(N, N);
+    
     
     iter_count = 0;
     while(is_not_diag) {
@@ -368,60 +411,61 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
             }
         }
 
-        LOG("HERE2\n");
-
         i = max_row;
         j = max_col;
-        printf("j=%d, i=%d\n", j,i);
-        /* Obtain c,s (P) */
-        LOG("HERE3\n");
-        printf("j=%d, i=%d\n", j,i);
-        print_matrix(A, N, N);
-        phi = A[j][i];
-        
-        
-        phi = 0.5*atan2(-2*A[i][j],A[j][j] - A[i][i]); /* Internet ??? */
-        s = sin(phi);
-        c = cos(phi);
 
+        /* Obtain c,s (P) */
+        theta = (A[j][j] - A[i][i]) / (2*A[i][j]);
+        sign_theta = get_sign(theta);
+        t = sign_theta / (fabs(theta) + sqrt(pow(theta, 2) + 1));
+        c = 1 / sqrt(pow(t, 2) + 1);
+        s = t * c;
+        
         /* Relation between A and A_tag */
         i = max_row;
         j = max_col;
-        LOG("HERE4\n");
         for (r = 0; r < N; r++) {
             if ((r != i) && (r != j)) {
                 A_tag[r][i] = c*A[r][i] - s*A[r][j];
                 A_tag[r][j] = c*A[r][j] + s*A[r][i];
+                A_tag[i][r] = A_tag[r][i];
+                A_tag[j][r] = A_tag[r][j];
             }
         }
-        LOG("HERE5\n");
         c_sq = pow(c, 2);
         s_sq = pow(s, 2);
         A_tag[i][i] = c_sq*A[i][i] + s_sq*A[j][j] - 2*s*c*A[i][j];
         A_tag[j][j] = s_sq*A[i][i] + c_sq*A[j][j] + 2*s*c*A[i][j];
-        A_tag[i][j] = 0 ; /* (c_sq - s_sq)*A[i][j] + s*c*(A[i][i] - A[j][j]) => =0 */
+        A_tag[i][j] = 0; /* (c_sq - s_sq)*A[i][j] + s*c*(A[i][i] - A[j][j]) => =0 */
+        A_tag[j][i] = 0;
 
+        /* Update the deep copy of the eigenvectors*/
+        for (i = 0; i < N; i++) {
+            for (j = 0; j < N; j++) {
+            eigen_vecs_dcopy[i][j] = eigen_vecs[i][j];
+            }
+        }
+
+        i = max_row;
+        j = max_col;
         /* Update Eigenvectors' matrix */
-        /* TO-DO: Check & fix! what if i=j? */ 
         for (r = 0; r < N; r++) {
-                eigen_vecs[r][i] = c*eigen_vecs[r][i] - s*eigen_vecs[r][j];
-                eigen_vecs[r][j] = c*eigen_vecs[r][j] + s*eigen_vecs[r][i];
+                eigen_vecs[r][i] = c*eigen_vecs_dcopy[r][i] - s*eigen_vecs_dcopy[r][j];
+                eigen_vecs[r][j] = c*eigen_vecs_dcopy[r][j] + s*eigen_vecs_dcopy[r][i];
         }
 
         /* Checking for Convergence */
         off_diff = 0;
         for (r = 0; r < N; r++) {
-            if ((r != i) && (r != j)) {
-                off_diff += pow(A[r][i], 2);
-                off_diff += pow(A[r][j], 2);
-                off_diff -= pow(A[r][i], 2);
-                off_diff -= pow(A[r][j], 2);
-            }
+            off_diff += pow(A[r][i], 2);
+            off_diff += pow(A[r][j], 2);
+            off_diff -= pow(A_tag[r][i], 2);
+            off_diff -= pow(A_tag[r][j], 2);
         }
-        if (i != j) {
-            off_diff += pow(A_tag[i][j], 2);
-            off_diff -= pow(A[i][j], 2);
-        }
+        off_diff -= pow(A[i][i], 2);
+        off_diff -= pow(A[j][j], 2);
+        off_diff += pow(A_tag[i][i], 2);
+        off_diff += pow(A_tag[j][j], 2);
 
         if (off_diff <= EPS || iter_count > MAX_ITER) {
             is_not_diag = 0;
@@ -430,36 +474,37 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
         
         /* 'Deep' update A = A' */
         for (r = 0; r < N; r++) {
-            if ((r != i) && (r != j)) {
-                A[r][i] = A_tag[r][i];
-                A[r][j] = A_tag[r][j];
-            }
+            A[r][i] = A_tag[r][i];
+            A[r][j] = A_tag[r][j];
+            A[i][r] = A_tag[r][i];
+            A[j][r] = A_tag[r][j];
         }
-        A[i][i] = A_tag[i][i];
-        A[j][j] = A_tag[j][j];
-        A[i][j] = A_tag[i][j];
 
         iter_count += 1;
     }
 
     /* Update Eigenvalues */
     for (i = 0; i < N; i++) {
-        eigen_vals[i] = A_tag[i][i];
+        eigen_vals[i] = A[i][i];
     }
 
-    /* Free A_tag <3 */
+    /* Free <3 */
     free_2d_array(A_tag);
-    
+    free_2d_array(eigen_vecs_dcopy);
     return;
 }
 
-
-/* Define a comparator for the qsort function.
-   Credit: 'tutorialspoint' */
+/*
+    Define a comperator for the qsort function.
+    SOURCE: 'https://www.tutorialspoint.com/c_standard_library/c_function_qsort.htm'
+*/
 int cmp_func (const void * a, const void * b) {
     return ( *(int*)a - *(int*)b );
 }
 
+/*
+    Print the matrix with the given dimention in the right format.
+*/
 void print_matrix(double **mat, int rows, int cols) {
     double *vec;
     double val;
@@ -469,6 +514,10 @@ void print_matrix(double **mat, int rows, int cols) {
         vec = mat[i];
         for (j = 0; j < cols; j++) {
             val = vec[j];
+            /* Avoiding '-0.0000' */
+            if (val < 0 && val > -0.00005) {
+                val = 0;
+            }
             printf("%.4f", val);
             if (j < cols - 1) {
                 printf(",");
@@ -478,6 +527,38 @@ void print_matrix(double **mat, int rows, int cols) {
     }
 }
 
+/*
+    Print the matrix with the given dimention in the right format,
+    when PRINTED[i][j] = MATRIX[j][i].
+
+    NOTE:
+    We define a special function for that because we didn't want to spend time on rotating the matrix.
+    Its a tradeoff of: Time Vs Additional code and elegant. We chose time :) .
+*/
+void print_transpose_matrix(double **mat, int rows, int cols) {
+    double val;
+    int i, j;
+
+    for (i = 0; i < cols; i++) {
+        for (j = 0; j < rows; j++) {
+            val = mat[j][i];
+            if (val < 0 && val > -0.00005) {
+                val = 0;
+            }
+            printf("%.4f", val);
+            if (j < rows - 1) {
+                printf(",");
+            }
+        }
+        printf("\n");
+    }
+}
+
+
+/*
+    Print a vector as a digonal matrix.
+    (used as we elaborated in the 'compute_ddg' function)
+*/
 void print_vector_as_matrix(double *diag, int n) {
     double val;
     int i, j;
@@ -498,7 +579,12 @@ void print_vector_as_matrix(double *diag, int n) {
     }
 }
 
-/* Preforms steps 1-5 of the algorithm */
+/*
+    Preforms steps 1-5 of the algorithm.
+    
+    TODO:
+    elaborate.
+*/
 double **init_spk_datapoints(Graph *graph, int *K) {
     double **eigenvectors, *eigenvalues, *eigenvalues_sorted;
     int N, i;
@@ -553,7 +639,12 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     return T;
 }
 
-/* Preforms steps 6-7 of the algorithm */
+/*
+    Preforms steps 6-7 of the algorithm.
+    
+    TODO:
+    elaborate.
+*/
 double **get_spk_clusters(double **data_points, double **centroids, int N, int dim, int K, int max_iter) {
     /* FLOW:
     1) call kmeans from kmeans.c
@@ -568,6 +659,10 @@ double **get_spk_clusters(double **data_points, double **centroids, int N, int d
    return data_points;
 }
 
+/*
+    TODO:
+    elaborate.
+*/
 int get_heuristic(double *eigenvalues, int N) {
     double max_delta;
     int max_idx = ((N/2)+1 < N-2)? (N/2)+1 : N-2; /* i is bounded as shown in the pdf */
@@ -586,7 +681,10 @@ int get_heuristic(double *eigenvalues, int N) {
     return K;
 }
 
-/* Elaborate */
+/*
+    TODO:
+    elaborate.
+*/
 void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int N, int K) {
     double curr_val, curr_sorted_val;
     const int NULL_VAL = -42; /* define null value when known that eigenvalues are positive */
@@ -612,6 +710,10 @@ void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eige
     }        
 }
 
+/*
+    TODO:
+    elaborate.
+*/
 void form_T(double **U, int N, int K) {
     int i, j;
     double vec_len;
@@ -633,22 +735,31 @@ void form_T(double **U, int N, int K) {
     free(zero_vec);
 }
 
+/*
+    Allocating memory for a vector.
+    TODO:
+    change name to 'calloc_vector'.
+*/
 double *calloc_1d_array(int size) {
     double *array;
     array = calloc(size, sizeof(double));
-    assert(array != NULL && MEM_ALLOC_ERR);
+    my_assert(array != NULL);
 
     return array;
 }
 
+/*
+    Allocating memory for a matrix.
+    TODO:
+    change name to 'calloc_matrix'.
+*/
 double **calloc_2d_array(int rows, int cols) {
     double *ptr, **array;
     int i;
 
     ptr = calloc((rows * cols), sizeof(double));
-    assert(ptr != NULL && MEM_ALLOC_ERR);
     array = calloc(rows, sizeof(double*));
-    assert(array != NULL && MEM_ALLOC_ERR);
+    my_assert(array != NULL || ptr != NULL);
     for (i = 0; i < rows; i++) {
         array[i] = ptr + i*cols;
     }
@@ -656,11 +767,19 @@ double **calloc_2d_array(int rows, int cols) {
     return array;
 }
 
+/*
+    Free a memory of a matrix.
+    TODO:
+    change name to 'free_matrix'.
+*/
 void free_2d_array(double **array) {
     free(array[0]);
     free(array);
 }
 
+/*
+    Free the memory of the graph.
+*/
 void free_graph(Graph *graph, goal goal) {
     LOG("-- FREE GRAPH --\n");
 
@@ -678,4 +797,24 @@ void free_graph(Graph *graph, goal goal) {
     LOG("HERE\n");
 
     return;
+}
+
+/*
+    Return the sign of a double.
+*/
+int get_sign(double d) {
+    if (d >= 0)
+        return 1;
+    else
+        return -1;
+}
+
+/*
+    Costume assert fucntion to satisfy the assignment's requirements.
+*/
+void my_assert(int status) {
+    if (status == 0) {
+        printf(ERR_MSG);
+        exit(1);
+    }
 }
