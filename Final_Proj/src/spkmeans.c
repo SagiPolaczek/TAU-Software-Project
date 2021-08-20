@@ -37,11 +37,15 @@ int main(int argc, char *argv[]) {
     double *eigenvalues, **eigenvectors, **A;
 
     LOG("\n----- DEBUGGING MODE ------\n\n");
+<<<<<<< HEAD
     if (argc != 4) {
         printf("Only 3 Arguments are allowed.\n");
         exit(1);
     }
 
+=======
+    
+>>>>>>> 59c32b4a9b51046d56ff24ace539a05d9657a02c
     k = atoi(argv[1]);
     goal_string = argv[2];
     goal = (int)(goal_string[0]);
