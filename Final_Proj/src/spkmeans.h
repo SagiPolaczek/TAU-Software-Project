@@ -35,10 +35,11 @@ void free_graph(Graph *graph, goal goal);
 int get_heuristic(double *eigenvalues, int N);
 void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int N, int K);
 void form_T(double **U, int N, int K);
-/* new conpute_spk should be:
-void compute_spk(Graph graph) */
 double **init_spk_datapoints(Graph *graph, int *K);
 double **get_spk_clusters(double **data_points, double **centroids, int N, int dim, int K, int max_iter);
 double *calloc_1d_array(int size);
 double **calloc_2d_array(int rows, int cols);
 void free_2d_array(double **array);
+int get_sign(double d);
+void print_transpose_matrix(double **mat, int rows, int cols);
+void my_assert(int status);
