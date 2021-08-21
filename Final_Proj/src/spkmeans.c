@@ -32,7 +32,7 @@
 */
 int main(int argc, char *argv[]) {
     char *goal_string, *file_path;
-    int k, N;
+    int k=1, N;
     goal goal;
     Graph graph = {0};
     double *eigenvalues, **eigenvectors, **A;
