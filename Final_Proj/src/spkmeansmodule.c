@@ -175,5 +175,26 @@ DataWrapper py_list_to_array(PyObject* py_list) {
     data_wrapper.container = p;
     data_wrapper.pointers = result;
     return data_wrapper;
+}
 
+/* Python Staff */
+static PyMethodDef _methods[] = {
+    {"fit_general", (PyCFunction)fit_general, METH_VARARGS, PyDoc_STR("Program for wam, ddg, lnorm and jacobi goals")},
+    {"fit_init_spk", (PyCFunction)fit_init_spk, METH_VARARGS, PyDoc_STR("Initials the T matrix for spk goal")},
+    {"fit_finish_spk", (PyCFunction)fit_finish_spk, METH_VARARGS, PyDoc_STR("Preforms kmeans algorithm for spk goal")},
+    {NULL, NULL, 0, NULL}   /* sentinel */
+};
+
+static struct PyModuleDef _moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "myspkmeans",
+    NULL,
+    -1,
+    _methods
+};
+
+PyMODINIT_FUNC
+PyInit_mykmeanssp(void)
+{
+    return PyModule_Create(&_moduledef);
 }
