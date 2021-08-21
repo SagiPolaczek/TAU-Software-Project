@@ -2,6 +2,7 @@ Final_Proj/demo1
 Final_Proj/src/myspkmeans.so
 Final_Proj/src/build
 Final_Proj/src/spkmeans
+Final_Proj/src/kmeans
 .gitignore.swp
 Final_Proj/src/.DS_Store
 Final_Proj/.DS_Store

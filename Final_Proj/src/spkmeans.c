@@ -4,8 +4,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "spkmeans.h"
 #include "kmeans.h"
+#include "kmeans.c"
+#include "spkmeans.h"
 #include "debugger.h"
 
 #define MEM_ALLOC_ERR "Fail to allocate memory."
@@ -223,22 +224,24 @@ void compute_wam(Graph *graph) {
 }
 
 /*
+/
     Compute the distance between the two vector.
     The vectors have 'dim' as dimention.
-*/
+ /
 double compute_distance(double *vec1, double *vec2, int dim) {
-    /* Variables Declarations */
+    / Variables Declarations /
     int i;
     double distance = 0, res;
     
-    /* Compute NORM */
+    / Compute NORM /
     for (i = 0; i < dim; i++) {
         distance += pow((vec1[i] - vec2[i]), 2);
     }
 
     res = sqrt(distance);
     return res;
-}
+} 
+*/
 
 /*
     Compute the Diagonal Degree Matrix and store it in the graph.
