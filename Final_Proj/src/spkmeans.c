@@ -669,9 +669,9 @@ double **get_spk_clusters(double **data_points, double **centroids, int N, int K
 
 
 
-   centroids = kmeans(data_points, centroids, N, K, K, max_iter);
+   /* centroids = kmeans(data_points, centroids, N, K, K, max_iter); */
    
-   
+
 
 
    /* for compilation purposes, delete when complete function */

@@ -20,7 +20,7 @@ typedef struct DataPoint {
 
 
 /* Functions Declarations */
-double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter);
+extern double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter);
 Cluster* init_clusters(int K, int dim);
 int find_closest_centroid(double **centroids, double *data_point, int K, int d);
 double compute_distance(double *u, double *v, int dim);
