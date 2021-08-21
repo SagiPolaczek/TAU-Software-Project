@@ -33,19 +33,18 @@
 */
 int main(int argc, char *argv[]) {
     char *goal_string, *file_path;
-    int k=1, N;
+    int K=1, N;
     goal goal;
     Graph graph = {0};
-    double *eigenvalues, **eigenvectors, **A;
 
     LOG("\n----- DEBUGGING MODE ------\n\n");
     
-    if (argc != 4 && k /*compilation*/) {
+    if (argc != 4 && K /*compilation*/) {
         printf("Only 3 Arguments are allowed.\n");
         exit(1);
     }
 
-    k = atoi(argv[1]);
+    K = atoi(argv[1]);
     goal_string = argv[2];
     goal = (int)(goal_string[0]);
     file_path = argv[3];
@@ -54,79 +53,25 @@ int main(int argc, char *argv[]) {
     read_data(&graph, file_path);
     N = graph.N;
     
-    if (goal == jacobi) { 
-
-        /* Allocate memory for the eigenvectors & eigenvalues */
-        eigenvectors = calloc_2d_array(N, N);
-        eigenvalues = calloc_1d_array(N);
-
-        A = graph.vertices;
-        compute_jacobi(A, N, eigenvectors, eigenvalues);
-
-        /* Print eigenvectors & eigenvalues */
-        LOG("-- Eigenvalues:\n");
-        print_matrix(&eigenvalues, 1, N);
-
-        LOG("-- Eigenvectors:\n");
-        print_transpose_matrix(eigenvectors, N, N);
-
-        free_2d_array(eigenvectors);
-        free(eigenvalues);
-
-        free_graph(&graph, jacobi);
-
-        LOG("-- COMPLETE GOAL JACOBI --");
-        return 42;
+    /* goal == wam / ddg / lnorm / jacobi */
+    if (goal != spk) {
+        compute_by_goal(&graph, goal);
     }
-
-    compute_wam(&graph);
-
-    /* If the goal is only to compute the WAM, we finished */
-    if (goal == wam) {
-        print_matrix(graph.weights, N, N);
-
-        free_graph(&graph, wam);
-
-        LOG("-- COMPLETE GOAL WAM --");
-        return 42;
-    }
-
-    compute_ddg(&graph);
-    
-    if (goal == ddg) {
-        print_vector_as_matrix(graph.degrees, N);
-
-        free_graph(&graph, ddg);
-        LOG("-- COMPLETE GOAL DDG --");
-        return 42;
-    }
-
-    compute_lnorm(&graph);
-
-    if (goal == lnorm) {
-        print_matrix(graph.lnorm, N, N);
-
-        free_graph(&graph, lnorm);
-        LOG("-- COMPLETE GOAL LNORM --");
-        return 42;
-    }
-
-    /* Allocate memory for the eigenvectors & eigenvalues */
-    eigenvectors = calloc_2d_array(N, N);
-    eigenvalues = calloc_1d_array(N);
-
-    A = graph.lnorm;
-    compute_jacobi(A, N, eigenvectors, eigenvalues);
-
-
     /* goal == spk */
+    else {
+        init_spk_datapoints(&graph, &K);
+        /* TODO: 
+        1) init centroids
+        2) call kmeans
+        3) call get_spk_clusters
+        4) print output */ 
+
+    }
 
     /* Extra operations */
         
     /* Print result */
 
-    free_2d_array(eigenvectors);
-    free(eigenvalues);
     free_graph(&graph, spk);
 
     return 42;
@@ -833,11 +778,72 @@ int get_sign(double d) {
 }
 
 /*
-    Costume assert fucntion to satisfy the assignment's requirements.
+    Custom assert fucntion to satisfy the assignment's requirements.
 */
 void my_assert(int status) {
     if (status == 0) {
         printf(ERR_MSG);
         exit(1);
+    }
+}
+
+void compute_by_goal(Graph *graph, goal goal) {
+    double *eigenvalues, **eigenvectors, **A;
+    int N = graph->N;
+    if (goal == jacobi) { 
+
+        /* Allocate memory for the eigenvectors & eigenvalues */
+        eigenvectors = calloc_2d_array(N, N);
+        eigenvalues = calloc_1d_array(N);
+
+        A = graph->vertices;
+        compute_jacobi(A, N, eigenvectors, eigenvalues);
+
+        /* Print eigenvectors & eigenvalues */
+        LOG("-- Eigenvalues:\n");
+        print_matrix(&eigenvalues, 1, N);
+
+        LOG("-- Eigenvectors:\n");
+        print_transpose_matrix(eigenvectors, N, N);
+
+        free_2d_array(eigenvectors);
+        free(eigenvalues);
+
+        free_graph(graph, jacobi);
+
+        LOG("-- COMPLETE GOAL JACOBI --");
+        return;
+    }
+
+    compute_wam(graph);
+
+    /* If the goal is only to compute the WAM, we finished */
+    if (goal == wam) {
+        print_matrix(graph->weights, N, N);
+
+        free_graph(graph, wam);
+
+        LOG("-- COMPLETE GOAL WAM --");
+        return;
+    }
+
+    compute_ddg(graph);
+    
+    if (goal == ddg) {
+        print_vector_as_matrix(graph->degrees, N);
+
+        free_graph(graph, ddg);
+        LOG("-- COMPLETE GOAL DDG --");
+        return;
+    }
+
+    compute_lnorm(graph);
+
+    if (goal == lnorm) {
+        print_matrix(graph->lnorm, N, N);
+
+        free_graph(graph, lnorm);
+        LOG("-- COMPLETE GOAL LNORM --");
+        return;
     }
 }

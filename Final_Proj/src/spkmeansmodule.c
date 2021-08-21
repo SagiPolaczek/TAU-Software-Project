@@ -4,6 +4,10 @@
 #include "spkmeans.h"
 #include "kmeans.h"
 
+#if PY_MAJOR_VERSION >= 3
+#define PY3K
+#endif
+
 static void fit_general(PyObject* self, PyObject* args); /* wam ddg lnorm jacobi */
 static PyObject* fit_init_spk(PyObject* self, PyObject* args);
 static void fit_finish_spk(PyObject* self, PyObject* args);
@@ -13,9 +17,8 @@ static void fit_general(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_data_points;
     double **data_points;
-    double *eigenvalues, **eigenvectors, **A;
+    // double *eigenvalues, **eigenvectors, **A;
     int N, dim, K, max_iter, g;
-    int i, j;
     goal goal;
     DataWrapper data_points_wrapper;
     Graph graph = {0};
@@ -36,11 +39,9 @@ static void fit_general(PyObject* self, PyObject* args) {
     graph.dim = dim;
 
     goal = g;
-    
-    /* compute_result(graph, goal); */
 
-    /* with the new interface:
-    compute_by_goal(&graph, goal); */
+    /* Main algorithm */
+    compute_by_goal(&graph, goal);
 
     /* Free memory */
     free(data_points_wrapper.container);
@@ -51,7 +52,7 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     PyObject *py_data_points;
     PyObject *py_result, *py_vector;
     double **data_points;
-    double *eigenvalues, **eigenvectors, **A, **result;
+    double **result;
     int N, dim, K, max_iter;
     int i, j;
     DataWrapper data_points_wrapper;
@@ -95,10 +96,9 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
 static void fit_finish_spk(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_centroids, *py_data, *py_indices;
-    PyObject *py_result, *py_vector;
     double **centroids, **data_points, **result;
     int N, dim, K, max_iter;
-    int i, j;
+    int i;
     DataWrapper centroids_wrapper, data_points_wrapper;
 
     if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
@@ -123,7 +123,7 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
 
     /* Print indices */
     for (i = 0; i < K; i++) {
-        printf("%d", PyList_GET_ITEM(py_indices, i));
+        printf("%.4f", PyFloat_AsDouble(PyList_GET_ITEM(py_indices, i)));
         if (i < K -1) {
             printf(",");
         }
@@ -147,8 +147,8 @@ DataWrapper py_list_to_array(PyObject* py_list) {
     PyObject *vector, *value;
     DataWrapper data_wrapper;
 
-    n = PyList_Size(py_list);
-    m = PyList_Size(PyList_GetItem(py_list, 0));
+    n = (int)PyList_Size(py_list);
+    m = (int)PyList_Size(PyList_GetItem(py_list, 0));
 
     /* Init a 2-dimentaional array for the result */ 
     p = calloc((n * m), sizeof(double));
@@ -185,6 +185,7 @@ static PyMethodDef _methods[] = {
     {NULL, NULL, 0, NULL}   /* sentinel */
 };
 
+#ifdef PY3K
 static struct PyModuleDef _moduledef = {
     PyModuleDef_HEAD_INIT,
     "myspkmeans",
@@ -193,8 +194,14 @@ static struct PyModuleDef _moduledef = {
     _methods
 };
 
-PyMODINIT_FUNC
-PyInit_myspkmeans(void)
+PyMODINIT_FUNC PyInit_myspkmeans(void)
 {
     return PyModule_Create(&_moduledef);
 }
+
+#else
+PyMODINIT_FUNC initmyspkmeans(void) {
+    Py_InitModule3("myspkmeans", _methods, NULL);
+}
+
+#endif

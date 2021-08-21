@@ -1,5 +1,3 @@
-
-
 /* Structures Declarations */
 typedef struct Graph {
     double **vertices;
@@ -43,3 +41,4 @@ void free_2d_array(double **array);
 int get_sign(double d);
 void print_transpose_matrix(double **mat, int rows, int cols);
 void my_assert(int status);
+void compute_by_goal(Graph *graph, goal goal);
