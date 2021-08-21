@@ -33,6 +33,7 @@
 */
 int main(int argc, char *argv[]) {
     char *goal_string, *file_path;
+    double **data_points;
     int K=1, N;
     goal goal;
     Graph graph = {0};
@@ -59,7 +60,7 @@ int main(int argc, char *argv[]) {
     }
     /* goal == spk */
     else {
-        init_spk_datapoints(&graph, &K);
+        data_points = init_spk_datapoints(&graph, &K);
         /* TODO: 
         1) init centroids
         2) call kmeans
@@ -71,8 +72,6 @@ int main(int argc, char *argv[]) {
     /* Extra operations */
         
     /* Print result */
-
-    free_graph(&graph, spk);
 
     return 42;
 }
