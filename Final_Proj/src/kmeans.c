@@ -155,24 +155,3 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
     /* Raise count by one */
     cluster.count[0] += 1;
 }
-
-
-/* Python Staff */
-static PyMethodDef _methods[] = {
-    {"fit", (PyCFunction)fit, METH_VARARGS, PyDoc_STR("Our SAVAGE Program")},
-    {NULL, NULL, 0, NULL}   /* sentinel */
-};
-
-static struct PyModuleDef _moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "mykmeanssp",
-    NULL,
-    -1,
-    _methods
-};
-
-PyMODINIT_FUNC
-PyInit_mykmeanssp(void)
-{
-    return PyModule_Create(&_moduledef);
-}

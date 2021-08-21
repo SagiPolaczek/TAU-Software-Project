@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "spkmeans.h"
+#include "kmeans.h"
 #include "debugger.h"
 
 #define MEM_ALLOC_ERR "Fail to allocate memory."
@@ -645,7 +646,7 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     form_T(T, *K, N);
 
     free(eigenvalues_sorted);
-    free(eigenvalues);
+    free(eigenvalues); 
     free_2d_array(eigenvectors);
     
     return T;
@@ -657,7 +658,7 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     TODO:
     elaborate.
 */
-double **get_spk_clusters(double **data_points, double **centroids, int N, int dim, int K, int max_iter) {
+double **get_spk_clusters(double **data_points, double **centroids, int N, int K, int max_iter) {
     /* FLOW:
     1) call kmeans from kmeans.c
     2) preform step 7 of the algorithm
@@ -666,8 +667,15 @@ double **get_spk_clusters(double **data_points, double **centroids, int N, int d
     */
 
 
+
+
+   centroids = kmeans(data_points, centroids, N, K, K, max_iter);
+   
+   
+
+
    /* for compilation purposes, delete when complete function */
-   printf("%f%f%d%d%d%d", data_points[0][0], centroids[0][0], N, dim, K, max_iter);
+   printf("%f%f%d%d%d%d", data_points[0][0], centroids[0][0], N, K, K, max_iter);
    return data_points;
 }
 
