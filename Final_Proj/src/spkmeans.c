@@ -474,6 +474,13 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
 
         if (off_diff <= EPS || iter_count > MAX_ITER) {
             is_not_diag = 0;
+            /* 'Deep' update A = A' */
+            for (r = 0; r < N; r++) {
+                A[r][i] = A_tag[r][i];
+                A[r][j] = A_tag[r][j];
+                A[i][r] = A_tag[r][i];
+                A[j][r] = A_tag[r][j];
+            }
             break;
         }
         
