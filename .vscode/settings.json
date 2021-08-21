@@ -3,7 +3,8 @@
         "cmath": "c",
         "complex": "c",
         "iterator": "c",
-        "spkmeans.h": "c"
+        "spkmeans.h": "c",
+        "assert.h": "c"
     },
     "git.ignoreLimitWarning": true
 }

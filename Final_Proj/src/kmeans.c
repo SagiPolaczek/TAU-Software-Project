@@ -6,7 +6,7 @@
 #include "kmeans.h"
 
 /* Main Function */
-double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter) 
+extern double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter) 
 {
     /* Variables Declarations */
     int i;

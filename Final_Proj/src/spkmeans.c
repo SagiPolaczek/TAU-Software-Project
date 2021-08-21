@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
     LOG("\n----- DEBUGGING MODE ------\n\n");
     
-    if (argc != 4) {
+    if (argc != 4 && k /*compilation*/) {
         printf("Only 3 Arguments are allowed.\n");
         exit(1);
     }
@@ -662,14 +662,14 @@ double **get_spk_clusters(double **data_points, double **centroids, int N, int K
     /* FLOW:
     1) call kmeans from kmeans.c
     2) preform step 7 of the algorithm
-    3) return the final result
+    3) return the final resultg
     NOTE: the inputs may change during implementation - not sure what else we need for step 7
     */
 
 
 
 
-   /* centroids = kmeans(data_points, centroids, N, K, K, max_iter); */
+   centroids = kmeans(data_points, centroids, N, K, K, max_iter);
    
 
 
