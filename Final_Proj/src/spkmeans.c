@@ -154,10 +154,11 @@ void compute_wam(Graph *graph) {
     
     for (i = 0; i < N; i++) {
         v1 = vertices[i];
+
         for (j = 0; j < i; j++) {
             v2 = vertices[j];
-            distance = compute_distance(v1, v2, dim);
-            weight = exp((-1) * distance / 2);
+            distance = compute_distance_spk(v1, v2, dim);
+            weight = exp((-1) * (distance / 2));
             weights[i][j] = weight;
             weights[j][i] = weight;
         }
@@ -167,17 +168,17 @@ void compute_wam(Graph *graph) {
     return;
 }
 
+
 /*
-/
     Compute the distance between the two vector.
     The vectors have 'dim' as dimention.
- /
-double compute_distance(double *vec1, double *vec2, int dim) {
-    / Variables Declarations /
+ */
+double compute_distance_spk(double *vec1, double *vec2, int dim) {
+    /* Variables Declarations */
     int i;
     double distance = 0, res;
     
-    / Compute NORM /
+    /* Compute NORM */
     for (i = 0; i < dim; i++) {
         distance += pow((vec1[i] - vec2[i]), 2);
     }
@@ -185,7 +186,7 @@ double compute_distance(double *vec1, double *vec2, int dim) {
     res = sqrt(distance);
     return res;
 } 
-*/
+
 
 /*
     Compute the Diagonal Degree Matrix and store it in the graph.
@@ -692,7 +693,7 @@ void form_T(double **U, int N, int K) {
     for (i = 0; i < N; i++) {
         vec = U[i];
         /* compute the row vector's length */
-        vec_len = compute_distance(vec, zero_vec, K);
+        vec_len = compute_distance_spk(vec, zero_vec, K);
 
         for (j = 0; j < K; j++) {
             vec[j] = ( vec[j] / vec_len );

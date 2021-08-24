@@ -42,3 +42,4 @@ int get_sign(double d);
 void print_transpose_matrix(double **mat, int rows, int cols);
 void my_assert(int status);
 void compute_by_goal(Graph *graph, goal goal);
+double compute_distance_spk(double *vec1, double *vec2, int dim);
