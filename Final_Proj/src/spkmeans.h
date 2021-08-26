@@ -1,3 +1,4 @@
+#pragma once
 #include <math.h>
 #include "kmeans.h"
 #include "debugger.h"
