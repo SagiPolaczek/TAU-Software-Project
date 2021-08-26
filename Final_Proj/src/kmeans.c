@@ -150,3 +150,17 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
     /* Raise count by one */
     cluster.count[0] += 1;
 }
+
+void init_centroids(double **data_points, int K, int dim, double **centroids){
+    /* Variables Declarations */
+    int i, j;
+
+    /* Put the first K data points into centroids */
+    for (i = 0; i < K; i++) {
+        for (j = 0; j < dim; j++) {
+            centroids[i][j] = data_points[i][j];
+        }
+    }
+
+    return;
+}
