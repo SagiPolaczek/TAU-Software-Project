@@ -95,7 +95,8 @@ if len(inputs) == 5:
 
 data_points = read_data(file_name)
 
-N, d = data_points.shape
+N = len(data_points)
+d = len(data_points[0])
 
 assert K < N, "K must be smaller than N!"
 
@@ -104,12 +105,12 @@ if goal == "spk":
     initial_centroids, centroids_indices = init_centroids(data_points, N, d, d) # K = d
     spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, d, d, max_iter) # K = d
 elif goal == "wam":
-    spk.fit_general(data_points, N, d, K, max_iter, int('w'))
+    spk.fit_general(data_points, N, d, K, max_iter, ord('w'))
 elif goal == "ddg":
-    spk.fit_general(data_points, N, d, K, max_iter, int('d'))
+    spk.fit_general(data_points, N, d, K, max_iter, ord('d'))
 elif goal == "lnorm":
-    spk.fit_general(data_points, N, d, K, max_iter, int('l'))
+    spk.fit_general(data_points, N, d, K, max_iter, ord('l'))
 elif goal == "jacobi":
-    spk.fit_general(data_points, N, d, K, max_iter, int('j'))
+    spk.fit_general(data_points, N, d, K, max_iter, ord('j'))
 else:
     assert False, "Invalid goal input!"
