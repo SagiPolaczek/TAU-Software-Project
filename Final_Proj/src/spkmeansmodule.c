@@ -39,9 +39,10 @@ static void fit_general(PyObject* self, PyObject* args) {
     graph.dim = dim;
 
     goal = g;
-
     /* Main algorithm */
     compute_by_goal(&graph, goal);
+
+
 
     /* Free memory */
     free(data_points_wrapper.container);

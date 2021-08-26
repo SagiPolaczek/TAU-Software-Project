@@ -1,3 +1,10 @@
+#include <math.h>
+#include "kmeans.h"
+#include "debugger.h"
+
+#define MEM_ALLOC_ERR "Fail to allocate memory."
+#define ERR_MSG "An Error Has Occured"
+
 /* Structures Declarations */
 typedef struct Graph {
     double **vertices;

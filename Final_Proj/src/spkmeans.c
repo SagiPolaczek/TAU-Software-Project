@@ -1,16 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
-#include <math.h>
-
-#include "kmeans.h"
 #include "kmeans.c"
 #include "spkmeans.h"
-#include "debugger.h"
-
-#define MEM_ALLOC_ERR "Fail to allocate memory."
-#define ERR_MSG "An Error Has Occured"
 
 /*
     TODO:
@@ -24,7 +13,6 @@
     * Search 'TODO' for other tasks
     * Add 'TODO' throughout the code if there is any task :) 
 */
-
 
 
 /*

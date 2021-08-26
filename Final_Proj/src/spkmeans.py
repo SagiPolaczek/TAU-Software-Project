@@ -1,11 +1,9 @@
 import sys
-import pandas as pd
 import numpy as np
 import myspkmeans as spk
 
 # Read data from input file
 def read_data(file_name):
-
     input_file = open(file_name, 'r') 
     data_points = []
 
@@ -72,48 +70,46 @@ def init_centroids(data_points, N, d, K):
 
     return centroids.tolist() , centroids_indices
 
+# Reading user's Command Line arguments
+inputs = sys.argv
 
-def main():
-    # Reading user's Command Line arguments
-    inputs = sys.argv
+assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!"
 
-    assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!"
+assert inputs[1].isnumeric(), "K must be an integer"
 
-    assert inputs[1].isnumeric(), "K must be an integer"
+K = int(inputs[1])
+assert K >= 0, "K must be non-negative!"
 
-    K = int(inputs[1])
-    assert K >= 0, "K must be non-negative!"
+max_iter = 300
 
-    max_iter = 300
+goal = inputs[2]
+file_name = inputs[3]
 
-    goal = inputs[2]
-    file_name = inputs[3]
+if len(inputs) == 5:
+    assert inputs[2].isnumeric(), "max_iter must be an integer"
+    assert max_iter >= 0, "max_iter must be non-negative!"
 
-    if len(inputs) == 5:
-        assert inputs[2].isnumeric(), "max_iter must be an integer"
-        assert max_iter >= 0, "max_iter must be non-negative!"
+    max_iter = int(inputs[2])
+    goal = inputs[3]
+    file_name = inputs[4]
 
-        max_iter = int(inputs[2])
-        goal = inputs[3]
-        file_name = inputs[4]
+data_points = read_data(file_name)
 
-    data_points = read_data(file_name)
+N, d = data_points.shape
 
-    N, d = data_points.shape
+assert K < N, "K must be smaller than N!"
 
-    assert K < N, "K must be smaller than N!"
-
-    if goal == "spk":
-       data_points = spk.fit_init_spk()
-       initial_centroids, centroids_indices = init_centroids(data_points, N, d, d) # K = d
-       spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, d, d, max_iter) # K = d
-    elif goal == "wam":
-        spk.fit_general(data_points, N, d, K, max_iter, int('w'))
-    elif goal == "ddg":
-        spk.fit_general(data_points, N, d, K, max_iter, int('d'))
-    elif goal == "lnorm":
-        spk.fit_general(data_points, N, d, K, max_iter, int('l'))
-    elif goal == "jacobi":
-        spk.fit_general(data_points, N, d, K, max_iter, int('j'))
-    else:
-        assert False, "Invalid goal input!"
+if goal == "spk":
+    data_points = spk.fit_init_spk()
+    initial_centroids, centroids_indices = init_centroids(data_points, N, d, d) # K = d
+    spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, d, d, max_iter) # K = d
+elif goal == "wam":
+    spk.fit_general(data_points, N, d, K, max_iter, int('w'))
+elif goal == "ddg":
+    spk.fit_general(data_points, N, d, K, max_iter, int('d'))
+elif goal == "lnorm":
+    spk.fit_general(data_points, N, d, K, max_iter, int('l'))
+elif goal == "jacobi":
+    spk.fit_general(data_points, N, d, K, max_iter, int('j'))
+else:
+    assert False, "Invalid goal input!"
