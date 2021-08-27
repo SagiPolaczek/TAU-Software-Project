@@ -5,20 +5,8 @@
 
 #define ERR_MSG "An Error Has Occured"
 
-/*
-    TODO:
-    - Add files 'utils.c','utils.h' and move functions to them.
-    - Document more.
-    - Optimization!
-    - Format: maximum line length: 80, maximum lines in a function: 60~
-    - Check if we free memory ASAP.
-    - 
-
-    * Search 'TODO' for other tasks
-    * Add 'TODO' throughout the code if there is any task :) 
-*/
-
-int MAX_ITER = 300;
+const int MAX_ITER_KMEANS = 300;
+const int MAX_ITER_JACOBI = 100;
 
 
 /*
@@ -59,7 +47,7 @@ int main(int argc, char *argv[]) {
         centroids = calloc_2d_array(K, K);
         init_centroids(data_points, K, K, centroids);
 
-        kmeans(data_points, N, K, K, MAX_ITER, centroids);
+        kmeans(data_points, N, K, K, MAX_ITER_KMEANS, centroids);
 
         LOG("-- SPK:\n");
         print_matrix(centroids, K, K);
@@ -317,8 +305,7 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     double **A_tag, **eigen_vecs_dcopy;
     double off_diff;
     int iter_count;
-    const int MAX_ITER = 100;
-    const double EPS = 1*exp(-15);
+    const double EPS = pow(10, -15);
 
     LOG("-- Computing JACOBI --\n");
 
@@ -342,7 +329,7 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     eigen_vecs_dcopy = calloc_2d_array(N, N);
     
     
-    iter_count = 0;
+    iter_count = 1;
     while(is_not_diag) {
         /* Pivot - Find the maximum absolute value A_ij */
         max_row = 0; max_col = 1; /* Assume n >= 2 */
@@ -415,24 +402,18 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
         off_diff += pow(A_tag[i][i], 2);
         off_diff += pow(A_tag[j][j], 2);
 
-        if (off_diff <= EPS || iter_count > MAX_ITER) {
-            is_not_diag = 0;
-            /* 'Deep' update A = A' */
-            for (r = 0; r < N; r++) {
-                A[r][i] = A_tag[r][i];
-                A[r][j] = A_tag[r][j];
-                A[i][r] = A_tag[r][i];
-                A[j][r] = A_tag[r][j];
-            }
-            break;
-        }
-        
         /* 'Deep' update A = A' */
         for (r = 0; r < N; r++) {
             A[r][i] = A_tag[r][i];
             A[r][j] = A_tag[r][j];
             A[i][r] = A_tag[r][i];
             A[j][r] = A_tag[r][j];
+        }
+
+        if (off_diff <= EPS || iter_count >= MAX_ITER_JACOBI) {
+            printf("off_diff=%f\niter_count=%d\n", off_diff, iter_count);
+            is_not_diag = 0;
+            break;
         }
 
         iter_count += 1;
@@ -585,10 +566,12 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     /* Sort eigenvalues_sorted */
     qsort(eigenvalues_sorted, N, sizeof(double), cmp_func);
 
+    /*
     LOG("-- Eigenvalues):\n");
     print_matrix(&eigenvalues, 1, N);
     LOG("-- Eigenvalues (SORTED):\n");
     print_matrix(&eigenvalues_sorted, 1, N);
+    */
 
     /*  If K doesn't provided (k==0) determine k */
     if (K == 0) {
@@ -603,8 +586,10 @@ double **init_spk_datapoints(Graph *graph, int *K) {
 
     form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);
 
+    /*
     LOG("-- U:\n");
     print_matrix(U, N, *K);
+    */
     /*  Form T from U by renormalizing each row to have the unit length */
     T = U;
     form_T(T, N, *K);
@@ -686,7 +671,6 @@ void form_T(double **U, int N, int K) {
         vec = U[i];
         /* compute the row vector's length */
         vec_len = compute_distance_spk(vec, zero_vec, K);
-        printf("%f\n", vec_len);
 
         for (j = 0; j < K; j++) {
             vec[j] = ( vec[j] / vec_len );
