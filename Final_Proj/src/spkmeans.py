@@ -102,18 +102,32 @@ assert K < N, "K must be smaller than N!"
 
 if goal == "spk":
     data_points = spk.fit_init_spk(data_points, N, d, K, max_iter)
+    
     # Update K if K was 0 and we called heuristic algorithm
     if K == 0:
         K = len(data_points[0])
     initial_centroids, centroids_indices = init_centroids(data_points, N, K, K) # d = K
+   
+    # Print indices as the first row of the output
+    for i in range(len(centroids_indices)):
+        if (i == len(centroids_indices)-1):
+            print(centroids_indices[i])
+        else:
+            print(centroids_indices[i], end=",")
+
     spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, K, K, max_iter) # d = K
+
 elif goal == "wam":
     spk.fit_general(data_points, N, d, max_iter, ord('w'))
+
 elif goal == "ddg":
     spk.fit_general(data_points, N, d, max_iter, ord('d'))
+
 elif goal == "lnorm":
     spk.fit_general(data_points, N, d, max_iter, ord('l'))
+
 elif goal == "jacobi":
     spk.fit_general(data_points, N, d, max_iter, ord('j'))
+
 else:
     assert False, "Invalid goal input!"

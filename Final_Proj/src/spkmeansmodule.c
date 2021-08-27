@@ -105,7 +105,7 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     PyObject *py_centroids, *py_data, *py_indices;
     double **centroids, **data_points, **result;
     int N, dim, K, max_iter;
-    int n, m, i;
+    int n, m;
 
     if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
         return;
@@ -141,17 +141,6 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     /* Main Algorithm - should call another func here which will call kmeans */
     kmeans(data_points, N, dim, K, max_iter, result);
 
-    /* Print indices */
-    printf("SPK FINAL RESULT FROM PYTHON\n");
-    for (i = 0; i < K; i++) {
-        printf("%ld", PyLong_AsLong(PyList_GET_ITEM(py_indices, i)));
-        if (i < K -1) {
-            printf(",");
-        }
-        else {
-            printf("\n");
-        }
-    }
     /* Print centroids */
     print_matrix(result, N, K);
 
