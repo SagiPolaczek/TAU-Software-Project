@@ -4,16 +4,12 @@
 #include "spkmeans.h"
 #include "kmeans.h"
 
-#if PY_MAJOR_VERSION >= 3
-#define PY3K
-#endif
-
-static void fit_general(PyObject* self, PyObject* args); /* wam ddg lnorm jacobi */
+static PyObject* fit_general(PyObject* self, PyObject* args); /* wam ddg lnorm jacobi */
 static PyObject* fit_init_spk(PyObject* self, PyObject* args);
-static void fit_finish_spk(PyObject* self, PyObject* args);
+static PyObject* fit_finish_spk(PyObject* self, PyObject* args);
 void py_list_to_array(PyObject* py_list, int n, int m, double **data_points);
 
-static void fit_general(PyObject* self, PyObject* args) {
+static PyObject* fit_general(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_data_points;
     double **data_points;
@@ -23,12 +19,14 @@ static void fit_general(PyObject* self, PyObject* args) {
     Graph graph = {0};
 
     if (!PyArg_ParseTuple(args, "Oiiii", &py_data_points, &N, &dim, &max_iter, &g))
-        return;
-    printf("C-%d\n", 1);
+        return NULL;
+    
     /* Validation */
     assert(PyList_Check(py_data_points));
+    
 
     n = (int)PyList_Size(py_data_points);
+    
     m = (int)PyList_Size(PyList_GetItem(py_data_points, 0));
 
     data_points = calloc_2d_array(n, m);
@@ -36,7 +34,6 @@ static void fit_general(PyObject* self, PyObject* args) {
     /* Convert Arrays from Python to C */
     py_list_to_array(py_data_points, n, m, data_points);
     
-    printf("C-%d\n", 3);
     /* Init graph */
     graph.vertices = data_points;
     graph.N = N;
@@ -45,9 +42,8 @@ static void fit_general(PyObject* self, PyObject* args) {
     goal = g;
     /* Main algorithm */
     compute_by_goal(&graph, goal);
-    printf("C-%d\n", 4);
-    /* Free memory */
-    /* free(&graph); */
+
+    return PyLong_FromLong(42);
 }
 
 static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
@@ -100,7 +96,7 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-static void fit_finish_spk(PyObject* self, PyObject* args) {
+static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_centroids, *py_data, *py_indices;
     double **centroids, **data_points, **result;
@@ -108,7 +104,7 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     int n, m;
 
     if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
-        return;
+        return NULL;
     
     /* Validation */
     assert(PyList_Check(py_centroids));
@@ -147,6 +143,8 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     /* Free Memory */
     free_2d_array(data_points);
     free_2d_array(centroids);
+
+    return PyLong_FromLong(42);
 }
 
 /* Convert PyObject array into a double 2d array */
@@ -174,7 +172,6 @@ static PyMethodDef _methods[] = {
     {NULL, NULL, 0, NULL}   /* sentinel */
 };
 
-#ifdef PY3K
 static struct PyModuleDef _moduledef = {
     PyModuleDef_HEAD_INIT,
     "myspkmeans",
@@ -183,14 +180,9 @@ static struct PyModuleDef _moduledef = {
     _methods
 };
 
-PyMODINIT_FUNC PyInit_myspkmeans(void)
+PyMODINIT_FUNC 
+PyInit_myspkmeans(void)
 {
     return PyModule_Create(&_moduledef);
 }
 
-#else
-PyMODINIT_FUNC initmyspkmeans(void) {
-    Py_InitModule3("myspkmeans", _methods, NULL);
-}
-
-#endif

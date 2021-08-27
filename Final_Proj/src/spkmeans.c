@@ -748,14 +748,12 @@ void free_graph(Graph *graph, goal goal) {
     if (goal == jacobi) {return;}
 
     free_2d_array(graph->weights);
-    printf("TEST TEST %d\n", (goal == wam));
     if (goal == wam) {return;}
 
-    printf("TEST TEST\n");
     free(graph->degrees);
 
     if (goal == ddg) {return;}
-
+    
     free_2d_array(graph->lnorm);
     LOG("HERE\n");
 
@@ -819,7 +817,6 @@ void compute_by_goal(Graph *graph, goal goal) {
 
         free_graph(graph, wam);
 
-        printf("C - %d\n", 10);
         LOG("-- COMPLETE GOAL WAM --");
         return;
     }
