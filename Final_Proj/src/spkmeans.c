@@ -1,13 +1,16 @@
-#include "kmeans.c"
-#include "spkmeans.h"
-#include "debugger.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 #include <math.h>
+
+#include "spkmeans.h"
 
 #define ERR_MSG "An Error Has Occured"
 
+
 const int MAX_ITER_KMEANS = 300;
 const int MAX_ITER_JACOBI = 100;
-
 
 /*
     Command Line Interface in the following format:
@@ -19,8 +22,6 @@ int main(int argc, char *argv[]) {
     int K=1, N;
     goal goal;
     Graph graph = {0};
-
-    LOG("\n----- DEBUGGING MODE ------\n\n");
     
     if (argc != 4 && K /*compilation*/) {
         printf("Only 3 Arguments are allowed.\n");
@@ -49,7 +50,6 @@ int main(int argc, char *argv[]) {
 
         kmeans(data_points, N, K, K, MAX_ITER_KMEANS, centroids);
 
-        LOG("-- SPK:\n");
         print_matrix(centroids, K, K);
 
         free_graph(&graph, goal);
@@ -77,7 +77,6 @@ void read_data(Graph *graph, char *file_path) {
     }
     
 
-    LOG("-- Reading Data --\n");
 
     /* Scan data from the file to *count* dim and data_count */
     while (fscanf(ptr, "%lf%c", &value, &c) == 2)
@@ -125,7 +124,6 @@ void compute_wam(Graph *graph) {
     double **vertices = graph -> vertices;
     double **weights;
 
-    LOG("-- Computing WAM --\n");
     
     N = graph->N;
     dim = graph->dim;
@@ -148,7 +146,6 @@ void compute_wam(Graph *graph) {
         }
         weights[i][i] = 0;
     }
-    LOG("-- COMPLETE COMPUTE WAM --\n");
     return;
 }
 
@@ -187,7 +184,6 @@ void compute_ddg(Graph *graph) {
     double deg;
     double **weights, *ddg;
 
-    LOG("-- Computing DDG --\n");
     weights = graph -> weights;
     N = graph -> N;
 
@@ -226,8 +222,6 @@ void compute_lnorm(Graph *graph) {
     double *degs = graph -> degrees;
     int N = graph -> N;
     double **lnorm;
-
-    LOG("-- Computing LNORM --\n");
 
     /* Allocate memory for the Lnorm's matrix */
     lnorm = calloc_2d_array(N, N);
@@ -306,8 +300,6 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     double off_diff;
     int iter_count;
     const double EPS = pow(10, -15);
-
-    LOG("-- Computing JACOBI --\n");
 
     /* A_tag start as deep copy of A */
     A_tag = calloc_2d_array(N, N);
@@ -549,10 +541,8 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     compute_jacobi(graph->lnorm, N, eigenvectors, eigenvalues);
 
     /* Print eigenvectors & eigenvalues */
-    LOG("-- Eigenvalues:\n");
     print_matrix(&eigenvalues, 1, N);
 
-    LOG("-- Eigenvectors:\n");
     print_matrix(eigenvectors, N, N); /* trans */
 
 
@@ -566,12 +556,6 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     /* Sort eigenvalues_sorted */
     qsort(eigenvalues_sorted, N, sizeof(double), cmp_func);
 
-    /*
-    LOG("-- Eigenvalues):\n");
-    print_matrix(&eigenvalues, 1, N);
-    LOG("-- Eigenvalues (SORTED):\n");
-    print_matrix(&eigenvalues_sorted, 1, N);
-    */
 
     /*  If K doesn't provided (k==0) determine k */
     if (K == 0) {
@@ -586,10 +570,6 @@ double **init_spk_datapoints(Graph *graph, int *K) {
 
     form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);
 
-    /*
-    LOG("-- U:\n");
-    print_matrix(U, N, *K);
-    */
     /*  Form T from U by renormalizing each row to have the unit length */
     T = U;
     form_T(T, N, *K);
@@ -598,7 +578,6 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     free(eigenvalues); 
     free_2d_array(eigenvectors);
     
-    LOG("-- T:\n");
     print_matrix(T, N, *K);
     return T;
 }
@@ -726,7 +705,7 @@ void free_2d_array(double **array) {
     Free the memory of the graph.
 */
 void free_graph(Graph *graph, goal goal) {
-    LOG("-- FREE GRAPH --\n");
+
 
     free_2d_array(graph->vertices);
     if (goal == jacobi) {return;}
@@ -739,7 +718,7 @@ void free_graph(Graph *graph, goal goal) {
     if (goal == ddg) {return;}
     
     free_2d_array(graph->lnorm);
-    LOG("HERE\n");
+
 
     return;
 }
@@ -778,10 +757,8 @@ void compute_by_goal(Graph *graph, goal goal) {
         compute_jacobi(A, N, eigenvectors, eigenvalues);
 
         /* Print eigenvectors & eigenvalues */
-        LOG("-- Eigenvalues:\n");
         print_matrix(&eigenvalues, 1, N);
 
-        LOG("-- Eigenvectors:\n");
         print_matrix(eigenvectors, N, N); /* trans */
 
         free_2d_array(eigenvectors);
@@ -789,7 +766,6 @@ void compute_by_goal(Graph *graph, goal goal) {
 
         free_graph(graph, jacobi);
 
-        LOG("-- COMPLETE GOAL JACOBI --");
         return;
     }
 
@@ -801,7 +777,6 @@ void compute_by_goal(Graph *graph, goal goal) {
 
         free_graph(graph, wam);
 
-        LOG("-- COMPLETE GOAL WAM --");
         return;
     }
 
@@ -811,7 +786,6 @@ void compute_by_goal(Graph *graph, goal goal) {
         print_vector_as_matrix(graph->degrees, N);
 
         free_graph(graph, ddg);
-        LOG("-- COMPLETE GOAL DDG --");
         return;
     }
 
@@ -821,7 +795,172 @@ void compute_by_goal(Graph *graph, goal goal) {
         print_matrix(graph->lnorm, N, N);
 
         free_graph(graph, lnorm);
-        LOG("-- COMPLETE GOAL LNORM --");
         return;
     }
 }
+
+/* Main Function */
+void kmeans(double** data_points, int N, int dim, int K, int max_iter, double** centroids) 
+{
+    /* Variables Declarations */
+    int i;
+    int seen_changes, count_iter, cluster_index;
+    double *data_point;
+    Cluster *clusters;
+        
+    clusters = init_clusters(K, dim);
+
+    /* Main Algorithm's Loop */
+    count_iter = 0;
+    seen_changes = 1;
+
+    while ((seen_changes == 1) && (count_iter < max_iter)) {
+        count_iter++;
+        
+        for (i = 0; i < N; i++) {
+            data_point = data_points[i];
+            cluster_index = find_closest_centroid(centroids, data_point, K, dim);
+            add_datapoint_to_cluster(clusters, cluster_index, data_point, dim);            
+        }
+
+        seen_changes = update_centroids(centroids, clusters, K, dim);
+    }
+
+    /* Free memory */
+    free(clusters);
+
+    return;
+}
+
+Cluster* init_clusters(int K, int dim) {
+    /* Variables Declarations */
+    Cluster *clusters;
+    int i;
+    int *count;
+    double *array;
+
+    /* Allocate space and Init clusters to default */
+    clusters = calloc(K, sizeof(Cluster));
+    assert(clusters != NULL);
+
+    for (i = 0; i < K; i++) {
+        /* Allocate array for each cluster */
+        array = calloc(dim, sizeof(double));
+        assert(array != NULL);
+        
+        /* Allocate pointer to count as a singleton */
+        count = calloc(1, sizeof(int));
+        assert(count != NULL);
+
+        /* Attach */
+        clusters[i].vector_sum = array;
+        clusters[i].count = count;
+    }
+
+    return clusters;
+}
+
+int find_closest_centroid(double **centroids, double *data_point, int K, int dim){
+    /* Variables Declarations */
+    double min_distance;
+    double curr_distance = 0;
+    int i ,min_index = 0;
+    
+    min_distance = compute_distance(centroids[0], data_point, dim);
+    /* Loop throughtout the cluster */
+    for (i = 1; i < K; i++){
+        curr_distance = compute_distance(centroids[i], data_point, dim);
+        /* If we've found a closer centroid */
+        if (curr_distance < min_distance) {
+            min_distance = curr_distance;
+            min_index = i;
+        }
+    }
+
+    return min_index;
+}
+
+
+double compute_distance(double *u, double *v, int dim) {
+    /* Variables Declarations */
+    double distance = 0;
+    int i = 0;
+
+    /* Compute NORM^2 */
+    for (i = 0; i < dim; i++) {
+        distance += (u[i] - v[i]) * (u[i] - v[i]);
+    }
+
+    return distance;
+}
+
+int update_centroids(double **centroids, Cluster *clusters, int K, int dim) {  
+    /* Variable Declarations */  
+    Cluster cluster;
+    double *cluster_vector;
+    int cluster_count;
+    double *centroid;
+    double new_value;
+    int i, j;
+    int seen_changes = 0;
+
+    /* Update centroids */
+    for(i = 0 ; i < K ; i++) {
+        cluster = clusters[i];
+        cluster_vector = cluster.vector_sum;
+        cluster_count = cluster.count[0];
+        centroid = centroids[i];
+
+        /* If cluster not empty */
+        if(cluster_count > 0) {
+            for(j = 0 ; j < dim ; j++) {
+                new_value = (cluster_vector[j] / cluster_count);
+                /* If there was a change */
+                if(centroid[j] != new_value) {
+                    centroid[j] = new_value;
+                    seen_changes = 1;
+                }
+                /* Zerofy cluster's vector */
+                cluster_vector[j] = 0;
+            }
+            /* Zerofy cluster's count */
+            cluster.count[0] = 0;
+        }
+    }
+    return seen_changes;
+}
+
+void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
+                                         double *data_point, int dim){
+    /* Variables Declarations */
+    Cluster cluster;
+    double *cluster_vector;
+    int i;
+
+    cluster = clusters[cluster_index];
+    cluster_vector = cluster.vector_sum;
+
+
+    /* Sum coordinate by coordinate */
+    for (i = 0; i < dim; i++) {
+        cluster_vector[i] += data_point[i];
+    }
+    
+    /* Raise count by one */
+    cluster.count[0] += 1;
+}
+
+void init_centroids(double **data_points, int K, int dim, double **centroids){
+    /* Variables Declarations */
+    int i, j;
+
+    /* Put the first K data points into centroids */
+    for (i = 0; i < K; i++) {
+        for (j = 0; j < dim; j++) {
+            centroids[i][j] = data_points[i][j];
+        }
+    }
+
+    return;
+}
+

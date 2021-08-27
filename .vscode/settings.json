@@ -6,7 +6,8 @@
         "spkmeans.h": "c",
         "assert.h": "c",
         "stdio.h": "c",
-        "kmeans.h": "c"
+        "kmeans.h": "c",
+        "debugger.h": "c"
     },
     "git.ignoreLimitWarning": true
 }

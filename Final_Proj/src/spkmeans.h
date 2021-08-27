@@ -1,6 +1,5 @@
 #pragma once
 
-#include "kmeans.h"
 
 /* Structures Declarations */
 typedef struct Graph {
@@ -16,6 +15,13 @@ typedef enum goal { spk = (int)'s',
                     ddg = (int)'d', 
                     lnorm = (int)'l', 
                     jacobi = (int)'j' } goal;
+
+/* Kmeans' Structure Declaration */
+struct Cluster{
+    double *vector_sum;
+    int *count;
+};
+typedef struct Cluster Cluster;
 
 /* Functions Declarations */
 void compute_wam(Graph *graph);
@@ -51,3 +57,13 @@ void free_graph(Graph *graph, goal goal);
 int get_sign(double d);
 int cmp_func (const void *a, const void *b);
 void my_assert(int status);
+
+/* Kmeans Utils */
+void kmeans(double** data_points, int N, int dim, int K, int max_iter, double** centroids);
+Cluster* init_clusters(int K, int dim);
+int find_closest_centroid(double **centroids, double *data_point, int K, int d);
+double compute_distance(double *u, double *v, int dim);
+int update_centroids(double **centroids, Cluster *clusters, int K, int dim);
+void add_datapoint_to_cluster(Cluster *clusters, int cluster_index, double *data_point, int dim);
+void init_centroids(double **data_points, int K, int dim, double **centroids);
+

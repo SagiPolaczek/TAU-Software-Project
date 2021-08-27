@@ -2,7 +2,6 @@
 #include <Python.h>
 
 #include "spkmeans.h"
-#include "kmeans.h"
 
 static PyObject* fit_general(PyObject* self, PyObject* args); /* wam ddg lnorm jacobi */
 static PyObject* fit_init_spk(PyObject* self, PyObject* args);
