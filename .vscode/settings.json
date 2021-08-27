@@ -5,7 +5,8 @@
         "iterator": "c",
         "spkmeans.h": "c",
         "assert.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "kmeans.h": "c"
     },
     "git.ignoreLimitWarning": true
 }

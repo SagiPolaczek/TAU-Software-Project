@@ -1,5 +1,9 @@
 #include "kmeans.c"
 #include "spkmeans.h"
+#include "debugger.h"
+#include <math.h>
+
+#define ERR_MSG "An Error Has Occured"
 
 /*
     TODO:
@@ -55,7 +59,7 @@ int main(int argc, char *argv[]) {
         centroids = calloc_2d_array(K, K);
         init_centroids(data_points, K, K, centroids);
 
-        kmeans(data_points, K, K, K, MAX_ITER, centroids);
+        kmeans(data_points, N, K, K, MAX_ITER, centroids);
 
         print_matrix(centroids, K, K);
 
@@ -718,8 +722,10 @@ void free_graph(Graph *graph, goal goal) {
     if (goal == jacobi) {return;}
 
     free_2d_array(graph->weights);
+    printf("TEST TEST %d\n", (goal == wam));
     if (goal == wam) {return;}
 
+    printf("TEST TEST\n");
     free(graph->degrees);
 
     if (goal == ddg) {return;}
@@ -786,6 +792,7 @@ void compute_by_goal(Graph *graph, goal goal) {
 
         free_graph(graph, wam);
 
+        printf("C - %d\n", 10);
         LOG("-- COMPLETE GOAL WAM --");
         return;
     }

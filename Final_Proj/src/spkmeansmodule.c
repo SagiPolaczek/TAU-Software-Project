@@ -11,41 +11,33 @@
 static void fit_general(PyObject* self, PyObject* args); /* wam ddg lnorm jacobi */
 static PyObject* fit_init_spk(PyObject* self, PyObject* args);
 static void fit_finish_spk(PyObject* self, PyObject* args);
-void py_list_to_array(PyObject* py_list, int n, int m, DataWrapper data_points_wrapper);
+void py_list_to_array(PyObject* py_list, int n, int m, double **data_points);
 
 static void fit_general(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_data_points;
     double **data_points;
     int N, dim, K, max_iter, g;
-    int n, m, i;
+    int n, m;
     goal goal;
-    DataWrapper data_points_wrapper;
     Graph graph = {0};
 
     if (!PyArg_ParseTuple(args, "Oiiiii", &py_data_points, &N, &dim, &K, &max_iter, &g))
         return;
-    
+    printf("C-%d\n", 1);
     /* Validation */
     assert(PyList_Check(py_data_points));
 
     n = (int)PyList_Size(py_data_points);
     m = (int)PyList_Size(PyList_GetItem(py_data_points, 0));
 
-    /* Init a 2-dimentaional array for the result */ 
-    data_points_wrapper.container = calloc((n * m), sizeof(double));
-    assert(data_points_wrapper.container != NULL);
-    data_points_wrapper.pointers = calloc(n, sizeof(double*));
-    assert(data_points_wrapper.pointers != NULL);
-
-    for (i = 0; i < n; i++) {
-        data_points_wrapper.pointers[i] = data_points_wrapper.container + i*m;
-    }
+    data_points = calloc_2d_array(n, m);
 
     /* Convert Arrays from Python to C */
-    py_list_to_array(py_data_points, n, m, data_points_wrapper);
-    data_points = data_points_wrapper.pointers;
+    py_list_to_array(py_data_points, n, m, data_points);
 
+
+    printf("C-%d\n", 3);
     /* Init graph */
     graph.vertices = data_points;
     graph.N = N;
@@ -54,10 +46,11 @@ static void fit_general(PyObject* self, PyObject* args) {
     goal = g;
     /* Main algorithm */
     compute_by_goal(&graph, goal);
-
+    printf("C-%d\n", 4);
     /* Free memory */
-    free(data_points_wrapper.container);
-    free(data_points_wrapper.pointers);
+
+    printf("C-%d\n", 6);
+    printf("C-%d\n", 5);
 }
 
 static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
@@ -91,9 +84,10 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     }
 
     /* Convert Arrays from Python to C */
+    /*
     py_list_to_array(py_data_points, n, m, data_points_wrapper);
     data_points = data_points_wrapper.pointers;
-
+    */
     /* Init graph */
     graph.vertices = data_points;
     graph.N = N;
@@ -151,8 +145,11 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     }
 
     /* Convert Arrays from Python to C */
+
+    /*
     py_list_to_array(py_data, n, m, data_points_wrapper);
     data_points = data_points_wrapper.pointers;
+    */
 
     /* Allocate memory for centroids_wrapper */
 
@@ -170,11 +167,15 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     }
 
     /* Convert Arrays from Python to C */
+
+    /*
     py_list_to_array(py_centroids, n, m, centroids_wrapper);
     centroids = centroids_wrapper.pointers;
+    */
 
+    result = centroids;
     /* Main Algorithm - should call another func here which will call kmeans */
-    result = kmeans(data_points, centroids, N, dim, K, max_iter);
+    kmeans(data_points, N, dim, K, max_iter, result);
     /* with the new interface:
     result = get_spk_clusters(data_points, centroids, N, dim, K, max_iter); */
 
@@ -197,7 +198,7 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
 }
 
 /* Convert PyObject array into a double 2d array */
-void py_list_to_array(PyObject* py_list, int n, int m, DataWrapper data_points_wrapper) {
+void py_list_to_array(PyObject* py_list, int n, int m, double **data_points) {
     int i, j;
     PyObject *vector, *value;
     
@@ -208,7 +209,7 @@ void py_list_to_array(PyObject* py_list, int n, int m, DataWrapper data_points_w
         for (j = 0; j < m; j++) {
             value = PyList_GetItem(vector, j);
             assert(PyFloat_Check(value));
-            data_points_wrapper.pointers[i][j] = PyFloat_AsDouble(value);
+            data_points[i][j] = PyFloat_AsDouble(value);
         }
     }
 }

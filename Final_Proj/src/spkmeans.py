@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import myspkmeans as spk
 
+
 # Read data from input file
 def read_data(file_name):
     input_file = open(file_name, 'r') 
@@ -71,6 +72,7 @@ def init_centroids(data_points, N, d, K):
     return centroids.tolist() , centroids_indices
 
 # Reading user's Command Line arguments
+print(1)
 inputs = sys.argv
 
 assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!"
@@ -81,7 +83,7 @@ K = int(inputs[1])
 assert K >= 0, "K must be non-negative!"
 
 max_iter = 300
-
+print(2)
 goal = inputs[2]
 file_name = inputs[3]
 
@@ -92,7 +94,7 @@ if len(inputs) == 5:
     max_iter = int(inputs[2])
     goal = inputs[3]
     file_name = inputs[4]
-
+print(3)
 data_points = read_data(file_name)
 
 N = len(data_points)
@@ -101,13 +103,15 @@ d = len(data_points[0])
 assert d > 0, "d must be greater than zero!"
 
 assert K < N, "K must be smaller than N!"
-
+print(4)
 if goal == "spk":
     data_points = spk.fit_init_spk()
     initial_centroids, centroids_indices = init_centroids(data_points, N, d, d) # K = d
     spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, d, d, max_iter) # K = d
+    print(5)
 elif goal == "wam":
     spk.fit_general(data_points, N, d, K, max_iter, ord('w'))
+    print(6)
 elif goal == "ddg":
     spk.fit_general(data_points, N, d, K, max_iter, ord('d'))
 elif goal == "lnorm":

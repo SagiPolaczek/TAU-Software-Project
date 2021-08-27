@@ -1,10 +1,6 @@
 #pragma once
-#include <math.h>
-#include "kmeans.h"
-#include "debugger.h"
 
-#define MEM_ALLOC_ERR "Fail to allocate memory."
-#define ERR_MSG "An Error Has Occured"
+#include "kmeans.h"
 
 /* Structures Declarations */
 typedef struct Graph {
@@ -20,7 +16,6 @@ typedef enum goal { spk = (int)'s',
                     ddg = (int)'d', 
                     lnorm = (int)'l', 
                     jacobi = (int)'j' } goal;
-
 
 /* Functions Declarations */
 void compute_wam(Graph *graph);
@@ -46,7 +41,6 @@ void multi_vec_mat(double *vec, double **mat, int n, double **res);
 void multi_mat_vec(double **mat, double *vec, int n, double **res);
 void inverse_sqrt_vec(double *vector, int N, double *inv_sqrt_vec);
 
-
 /* Memory Utils */
 double *calloc_1d_array(int size);
 double **calloc_2d_array(int rows, int cols);
@@ -57,4 +51,3 @@ void free_graph(Graph *graph, goal goal);
 int get_sign(double d);
 int cmp_func (const void *a, const void *b);
 void my_assert(int status);
-
