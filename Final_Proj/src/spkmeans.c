@@ -607,7 +607,7 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     print_matrix(U, N, *K);
     /*  Form T from U by renormalizing each row to have the unit length */
     T = U;
-    form_T(T, *K, N);
+    form_T(T, N, *K);
 
     free(eigenvalues_sorted);
     free(eigenvalues); 
@@ -679,13 +679,14 @@ void form_T(double **U, int N, int K) {
     double vec_len;
     double *vec, *zero_vec;
 
-    /* init the zero_vec */
+    /* init a vector of zeros */
     zero_vec = calloc_1d_array(K);
 
     for (i = 0; i < N; i++) {
         vec = U[i];
         /* compute the row vector's length */
         vec_len = compute_distance_spk(vec, zero_vec, K);
+        printf("%f\n", vec_len);
 
         for (j = 0; j < K; j++) {
             vec[j] = ( vec[j] / vec_len );
