@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -24,7 +25,7 @@ typedef struct DataPoint {
 
 
 /* Functions Declarations */
-extern double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter);
+void kmeans(double** data_points, int N, int dim, int K, int max_iter, double** centroids);
 Cluster* init_clusters(int K, int dim);
 int find_closest_centroid(double **centroids, double *data_point, int K, int d);
 double compute_distance(double *u, double *v, int dim);

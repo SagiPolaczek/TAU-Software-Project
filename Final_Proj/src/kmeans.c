@@ -1,7 +1,7 @@
 #include "kmeans.h"
 
 /* Main Function */
-extern double** kmeans(double** data_points, double** centroids, int N, int dim, int K, int max_iter) 
+void kmeans(double** data_points, int N, int dim, int K, int max_iter, double** centroids) 
 {
     /* Variables Declarations */
     int i;
@@ -30,7 +30,7 @@ extern double** kmeans(double** data_points, double** centroids, int N, int dim,
     /* Free memory */
     free(clusters);
 
-    return centroids;
+    return;
 }
 
 Cluster* init_clusters(int K, int dim) {

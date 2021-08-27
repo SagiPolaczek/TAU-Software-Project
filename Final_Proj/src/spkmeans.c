@@ -14,6 +14,8 @@
     * Add 'TODO' throughout the code if there is any task :) 
 */
 
+int MAX_ITER = 300;
+
 
 /*
     Command Line Interface in the following format:
@@ -21,7 +23,7 @@
 */
 int main(int argc, char *argv[]) {
     char *goal_string, *file_path;
-    double **data_points;
+    double **data_points, **centroids;
     int K=1, N;
     goal goal;
     Graph graph = {0};
@@ -49,17 +51,18 @@ int main(int argc, char *argv[]) {
     /* goal == spk */
     else {
         data_points = init_spk_datapoints(&graph, &K);
-        /* TODO: 
-        1) init centroids
-        2) call kmeans
-        3) call get_spk_clusters
-        4) print output */ 
+       
+        centroids = calloc_2d_array(K, K);
+        init_centroids(data_points, K, K, centroids);
 
+        kmeans(data_points, K, K, K, MAX_ITER, centroids);
+
+        print_matrix(centroids, K, K);
+
+        free_graph(&graph, goal);
+        free_2d_array(centroids);
+        free_2d_array(data_points);
     }
-
-    /* Extra operations */
-        
-    /* Print result */
 
     return 42;
 }
@@ -237,7 +240,9 @@ void compute_lnorm(Graph *graph) {
     lnorm = calloc_2d_array(N, N);
     graph->lnorm = lnorm;
 
-    invsqrt_d = inverse_sqrt_vec(degs, N);
+    invsqrt_d = calloc_1d_array(N);
+
+    inverse_sqrt_vec(degs, N, invsqrt_d);
 
     /* (invsqrt_d * W * invsqrt_d)
       = ((invsqrt_d * W) * invsqrt_d) */
@@ -256,17 +261,13 @@ void compute_lnorm(Graph *graph) {
     return;
 }
 
-double* inverse_sqrt_vec(double *vector, int N) {
-    double *res;
+void inverse_sqrt_vec(double *vector, int N, double *inv_sqrt_vec) {
     int i;
-
-    /* Consider make it INPLACE */
-    res = calloc_1d_array(N);
     
     for (i = 0; i < N; i++) {
-        res[i] = 1 / (sqrt(vector[i]));
+        inv_sqrt_vec[i] = 1 / (sqrt(vector[i]));
     }
-    return res;
+    return;
 }
 
 /*
@@ -588,32 +589,6 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     return T;
 }
 
-/*
-    Preforms steps 6-7 of the algorithm.
-    
-    TODO:
-    elaborate.
-*/
-double **get_spk_clusters(double **data_points, double **centroids, int N, int K, int max_iter) {
-    /* FLOW:
-    1) call kmeans from kmeans.c
-    2) preform step 7 of the algorithm
-    3) return the final resultg
-    NOTE: the inputs may change during implementation - not sure what else we need for step 7
-    */
-
-
-
-
-   centroids = kmeans(data_points, centroids, N, K, K, max_iter);
-   
-
-
-
-   /* for compilation purposes, delete when complete function */
-   printf("%f%f%d%d%d%d", data_points[0][0], centroids[0][0], N, K, K, max_iter);
-   return data_points;
-}
 
 /*
     TODO:
