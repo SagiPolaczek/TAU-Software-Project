@@ -142,8 +142,9 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     kmeans(data_points, N, dim, K, max_iter, result);
 
     /* Print indices */
+    printf("SPK FINAL RESULT FROM PYTHON\n");
     for (i = 0; i < K; i++) {
-        printf("%.4f", PyFloat_AsDouble(PyList_GET_ITEM(py_indices, i)));
+        printf("%ld", PyLong_AsLong(PyList_GET_ITEM(py_indices, i)));
         if (i < K -1) {
             printf(",");
         }
