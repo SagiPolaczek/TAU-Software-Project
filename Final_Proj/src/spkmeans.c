@@ -452,10 +452,16 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
 
 /*
     Define a comperator for the qsort function.
-    SOURCE: 'https://www.tutorialspoint.com/c_standard_library/c_function_qsort.htm'
+    SOURCE: 'https://stackoverflow.com/questions/20584499/why-qsort-from-stdlib-doesnt-work-with-double-values-c'
 */
-int cmp_func (const void * a, const void * b) {
-    return ( *(int*)a - *(int*)b );
+int cmp_func (const void * a, const void * b)
+{
+  if (*(double*)a > *(double*)b)
+    return 1;
+  else if (*(double*)a < *(double*)b)
+    return -1;
+  else
+    return 0;  
 }
 
 /*
@@ -577,7 +583,12 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     }
 
     /* Sort eigenvalues_sorted */
-    qsort(eigenvalues_sorted, N, sizeof(int), cmp_func);
+    qsort(eigenvalues_sorted, N, sizeof(double), cmp_func);
+
+    LOG("-- Eigenvalues):\n");
+    print_matrix(&eigenvalues, 1, N);
+    LOG("-- Eigenvalues (SORTED):\n");
+    print_matrix(&eigenvalues_sorted, 1, N);
 
     /*  If K doesn't provided (k==0) determine k */
     if (K == 0) {
@@ -590,8 +601,10 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     /* Allocate memory for the U matrix. nxk. */
     U = calloc_2d_array(N, (*K));
 
-    form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);     
+    form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);
 
+    LOG("-- U:\n");
+    print_matrix(U, N, *K);
     /*  Form T from U by renormalizing each row to have the unit length */
     T = U;
     form_T(T, *K, N);
@@ -601,7 +614,7 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     free_2d_array(eigenvectors);
     
     LOG("-- T:\n");
-    print_matrix(T, *K, N);
+    print_matrix(T, N, *K);
     return T;
 }
 
