@@ -11,14 +11,14 @@
 static void fit_general(PyObject* self, PyObject* args); /* wam ddg lnorm jacobi */
 static PyObject* fit_init_spk(PyObject* self, PyObject* args);
 static void fit_finish_spk(PyObject* self, PyObject* args);
-DataWrapper py_list_to_array(PyObject* py_list);
+void py_list_to_array(PyObject* py_list, int n, int m, DataWrapper data_points_wrapper);
 
 static void fit_general(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_data_points;
     double **data_points;
-    // double *eigenvalues, **eigenvectors, **A;
     int N, dim, K, max_iter, g;
+    int n, m, i;
     goal goal;
     DataWrapper data_points_wrapper;
     Graph graph = {0};
@@ -29,8 +29,21 @@ static void fit_general(PyObject* self, PyObject* args) {
     /* Validation */
     assert(PyList_Check(py_data_points));
 
+    n = (int)PyList_Size(py_data_points);
+    m = (int)PyList_Size(PyList_GetItem(py_data_points, 0));
+
+    /* Init a 2-dimentaional array for the result */ 
+    data_points_wrapper.container = calloc((n * m), sizeof(double));
+    assert(data_points_wrapper.container != NULL);
+    data_points_wrapper.pointers = calloc(n, sizeof(double*));
+    assert(data_points_wrapper.pointers != NULL);
+
+    for (i = 0; i < n; i++) {
+        data_points_wrapper.pointers[i] = data_points_wrapper.container + i*m;
+    }
+
     /* Convert Arrays from Python to C */
-    data_points_wrapper = py_list_to_array(py_data_points);
+    py_list_to_array(py_data_points, n, m, data_points_wrapper);
     data_points = data_points_wrapper.pointers;
 
     /* Init graph */
@@ -42,10 +55,9 @@ static void fit_general(PyObject* self, PyObject* args) {
     /* Main algorithm */
     compute_by_goal(&graph, goal);
 
-
-
     /* Free memory */
     free(data_points_wrapper.container);
+    free(data_points_wrapper.pointers);
 }
 
 static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
@@ -55,7 +67,7 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     double **data_points;
     double **result;
     int N, dim, K, max_iter;
-    int i, j;
+    int i, j, n, m;
     DataWrapper data_points_wrapper;
     Graph graph = {0};
 
@@ -65,8 +77,21 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     /* Validation */
     assert(PyList_Check(py_data_points));
 
+    n = (int)PyList_Size(py_data_points);
+    m = (int)PyList_Size(PyList_GetItem(py_data_points, 0));
+
+    /* Init a 2-dimentaional array for the result */ 
+    data_points_wrapper.container = calloc((n * m), sizeof(double));
+    assert(data_points_wrapper.container != NULL);
+    data_points_wrapper.pointers = calloc(n, sizeof(double*));
+    assert(data_points_wrapper.pointers != NULL);
+
+    for (i = 0; i < n; i++) {
+        data_points_wrapper.pointers[i] = data_points_wrapper.container + i*m;
+    }
+
     /* Convert Arrays from Python to C */
-    data_points_wrapper = py_list_to_array(py_data_points);
+    py_list_to_array(py_data_points, n, m, data_points_wrapper);
     data_points = data_points_wrapper.pointers;
 
     /* Init graph */
@@ -99,7 +124,7 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     PyObject *py_centroids, *py_data, *py_indices;
     double **centroids, **data_points, **result;
     int N, dim, K, max_iter;
-    int i;
+    int n, m, i;
     DataWrapper centroids_wrapper, data_points_wrapper;
 
     if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
@@ -110,12 +135,43 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     assert(PyList_Check(py_data));
     assert(PyList_Check(py_indices));
 
-    /* Convert Arrays from python to C */
-    centroids_wrapper = py_list_to_array(py_centroids);
-    data_points_wrapper = py_list_to_array(py_data);
+    /* Allocate memory for data_points_wrapper */
 
-    centroids = centroids_wrapper.pointers;
+    n = (int)PyList_Size(py_data);
+    m = (int)PyList_Size(PyList_GetItem(py_data, 0));
+
+    /* Init a 2-dimentaional array for the result */ 
+    data_points_wrapper.container = calloc((n * m), sizeof(double));
+    assert(data_points_wrapper.container != NULL);
+    data_points_wrapper.pointers = calloc(n, sizeof(double*));
+    assert(data_points_wrapper.pointers != NULL);
+
+    for (i = 0; i < n; i++) {
+        data_points_wrapper.pointers[i] = data_points_wrapper.container + i*m;
+    }
+
+    /* Convert Arrays from Python to C */
+    py_list_to_array(py_data, n, m, data_points_wrapper);
     data_points = data_points_wrapper.pointers;
+
+    /* Allocate memory for centroids_wrapper */
+
+    n = (int)PyList_Size(py_centroids);
+    m = (int)PyList_Size(PyList_GetItem(py_centroids, 0));
+
+    /* Init a 2-dimentaional array for the result */ 
+    centroids_wrapper.container = calloc((n * m), sizeof(double));
+    assert(centroids_wrapper.container != NULL);
+    centroids_wrapper.pointers = calloc(n, sizeof(double*));
+    assert(centroids_wrapper.pointers != NULL);
+
+    for (i = 0; i < n; i++) {
+        centroids_wrapper.pointers[i] = centroids_wrapper.container + i*m;
+    }
+
+    /* Convert Arrays from Python to C */
+    py_list_to_array(py_centroids, n, m, centroids_wrapper);
+    centroids = centroids_wrapper.pointers;
 
     /* Main Algorithm - should call another func here which will call kmeans */
     result = kmeans(data_points, centroids, N, dim, K, max_iter);
@@ -141,25 +197,9 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
 }
 
 /* Convert PyObject array into a double 2d array */
-DataWrapper py_list_to_array(PyObject* py_list) {
-    int n, m, i, j;
-    double **result;
-    double *p;
+void py_list_to_array(PyObject* py_list, int n, int m, DataWrapper data_points_wrapper) {
+    int i, j;
     PyObject *vector, *value;
-    DataWrapper data_wrapper;
-
-    n = (int)PyList_Size(py_list);
-    m = (int)PyList_Size(PyList_GetItem(py_list, 0));
-
-    /* Init a 2-dimentaional array for the result */ 
-    p = calloc((n * m), sizeof(double));
-    assert(p != NULL);
-    result = calloc(n, sizeof(double*));
-    assert(result != NULL);
-
-    for (i = 0; i < n; i++) {
-        result[i] = p + i*m;
-    }
     
     /* Put the data from the PyObject into the Array */
     for (i = 0; i < n; i++) {
@@ -168,14 +208,9 @@ DataWrapper py_list_to_array(PyObject* py_list) {
         for (j = 0; j < m; j++) {
             value = PyList_GetItem(vector, j);
             assert(PyFloat_Check(value));
-            result[i][j] = PyFloat_AsDouble(value);
+            data_points_wrapper.pointers[i][j] = PyFloat_AsDouble(value);
         }
     }
-    
-    /* Pass the two array so we can free them both later */
-    data_wrapper.container = p;
-    data_wrapper.pointers = result;
-    return data_wrapper;
 }
 
 /* Python Staff */

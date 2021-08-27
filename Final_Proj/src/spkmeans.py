@@ -96,7 +96,9 @@ if len(inputs) == 5:
 data_points = read_data(file_name)
 
 N = len(data_points)
+assert N > 0, "N must be greater than zero!"
 d = len(data_points[0])
+assert d > 0, "d must be greater than zero!"
 
 assert K < N, "K must be smaller than N!"
 
