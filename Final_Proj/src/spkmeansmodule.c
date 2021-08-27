@@ -47,9 +47,7 @@ static void fit_general(PyObject* self, PyObject* args) {
     compute_by_goal(&graph, goal);
     printf("C-%d\n", 4);
     /* Free memory */
-
-    printf("C-%d\n", 6);
-    printf("C-%d\n", 5);
+    /* free(&graph); */
 }
 
 static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
@@ -85,12 +83,12 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     result = init_spk_datapoints(&graph, &K);
 
     /* Convert a two double array into a PyObject */
-    py_result = PyList_New(K);
+    py_result = PyList_New(N);
     assert(py_result != NULL && "Problem in generating PyList object");
-    for (i = 0; i < K; i++) {
-        py_vector = PyList_New(dim);
+    for (i = 0; i < N; i++) {
+        py_vector = PyList_New(K);
         assert(py_vector != NULL && "Problem in generating PyList object");
-        for (j = 0; j < dim; j++) {
+        for (j = 0; j < K; j++) {
             PyList_SET_ITEM(py_vector, j, PyFloat_FromDouble(result[i][j]));
         }
         PyList_SET_ITEM(py_result, i, py_vector);
@@ -150,7 +148,7 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
             printf(",");
         }
         else {
-            printf("/n");
+            printf("\n");
         }
     }
     /* Print centroids */

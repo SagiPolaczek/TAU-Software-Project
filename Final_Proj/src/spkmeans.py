@@ -27,7 +27,6 @@ def init_centroids(data_points, N, d, K):
     
     # dataArr = data.to_numpy() -> from HW2. since now we receive python list we to convert differently -> DELETE LATER
     dataArr = np.array(data_points)
-
     centroids = np.zeros((K, d))
     centroids_indices = [0 for i in range(K)]
     
@@ -36,7 +35,6 @@ def init_centroids(data_points, N, d, K):
 
     # Select m_1 randomly from x_1 -> x_N
     random_idx = np.random.choice(N)
-
     # Set the 0 centroid
     centroids_indices[0] = random_idx
     centroids[0] = dataArr[random_idx]
@@ -72,7 +70,6 @@ def init_centroids(data_points, N, d, K):
     return centroids.tolist() , centroids_indices
 
 # Reading user's Command Line arguments
-print(1)
 inputs = sys.argv
 
 assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!"
@@ -83,7 +80,6 @@ K = int(inputs[1])
 assert K >= 0, "K must be non-negative!"
 
 max_iter = 300
-print(2)
 goal = inputs[2]
 file_name = inputs[3]
 
@@ -94,7 +90,7 @@ if len(inputs) == 5:
     max_iter = int(inputs[2])
     goal = inputs[3]
     file_name = inputs[4]
-print(3)
+
 data_points = read_data(file_name)
 
 N = len(data_points)
@@ -103,12 +99,14 @@ d = len(data_points[0])
 assert d > 0, "d must be greater than zero!"
 
 assert K < N, "K must be smaller than N!"
-print(4)
+
 if goal == "spk":
     data_points = spk.fit_init_spk(data_points, N, d, K, max_iter)
+    # Update K if K was 0 and we called heuristic algorithm
+    if K == 0:
+        K = len(data_points[0])
     initial_centroids, centroids_indices = init_centroids(data_points, N, K, K) # d = K
     spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, K, K, max_iter) # d = K
-    print(5)
 elif goal == "wam":
     spk.fit_general(data_points, N, d, max_iter, ord('w'))
 elif goal == "ddg":
