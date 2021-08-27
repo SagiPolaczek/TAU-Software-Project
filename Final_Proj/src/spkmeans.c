@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
 
         kmeans(data_points, N, K, K, MAX_ITER, centroids);
 
+        LOG("-- SPK:\n");
         print_matrix(centroids, K, K);
 
         free_graph(&graph, goal);
@@ -317,7 +318,7 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     double off_diff;
     int iter_count;
     const int MAX_ITER = 100;
-    const double EPS = 0.001;
+    const double EPS = 1*exp(-15);
 
     LOG("-- Computing JACOBI --\n");
 
@@ -445,6 +446,7 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
     /* Free <3 */
     free_2d_array(A_tag);
     free_2d_array(eigen_vecs_dcopy);
+
     return;
 }
 
@@ -559,6 +561,14 @@ double **init_spk_datapoints(Graph *graph, int *K) {
 
     compute_jacobi(graph->lnorm, N, eigenvectors, eigenvalues);
 
+    /* Print eigenvectors & eigenvalues */
+    LOG("-- Eigenvalues:\n");
+    print_matrix(&eigenvalues, 1, N);
+
+    LOG("-- Eigenvectors:\n");
+    print_matrix(eigenvectors, N, N); /* trans */
+
+
     /* Deep copy the eigenvalues */
     eigenvalues_sorted = calloc_1d_array(N);
 
@@ -590,6 +600,8 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     free(eigenvalues); 
     free_2d_array(eigenvectors);
     
+    LOG("-- T:\n");
+    print_matrix(T, *K, N);
     return T;
 }
 
@@ -759,7 +771,8 @@ void my_assert(int status) {
 void compute_by_goal(Graph *graph, goal goal) {
     double *eigenvalues, **eigenvectors, **A;
     int N = graph->N;
-    if (goal == jacobi) { 
+
+    if (goal == jacobi) {
 
         /* Allocate memory for the eigenvectors & eigenvalues */
         eigenvectors = calloc_2d_array(N, N);
@@ -773,7 +786,7 @@ void compute_by_goal(Graph *graph, goal goal) {
         print_matrix(&eigenvalues, 1, N);
 
         LOG("-- Eigenvectors:\n");
-        print_transpose_matrix(eigenvectors, N, N);
+        print_matrix(eigenvectors, N, N); /* trans */
 
         free_2d_array(eigenvectors);
         free(eigenvalues);
