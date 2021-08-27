@@ -8,7 +8,6 @@
 
 #define ERR_MSG "An Error Has Occured"
 
-
 const int MAX_ITER_KMEANS = 300;
 const int MAX_ITER_JACOBI = 100;
 
@@ -403,7 +402,6 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals) 
         }
 
         if (off_diff <= EPS || iter_count >= MAX_ITER_JACOBI) {
-            printf("off_diff=%f\niter_count=%d\n", off_diff, iter_count);
             is_not_diag = 0;
             break;
         }

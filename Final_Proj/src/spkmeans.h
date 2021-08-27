@@ -1,6 +1,5 @@
 #pragma once
 
-
 /* Structures Declarations */
 typedef struct Graph {
     double **vertices;
