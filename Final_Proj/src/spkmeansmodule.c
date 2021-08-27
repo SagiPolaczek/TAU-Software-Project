@@ -17,12 +17,12 @@ static void fit_general(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_data_points;
     double **data_points;
-    int N, dim, K, max_iter, g;
+    int N, dim, max_iter, g;
     int n, m;
     goal goal;
     Graph graph = {0};
 
-    if (!PyArg_ParseTuple(args, "Oiiiii", &py_data_points, &N, &dim, &K, &max_iter, &g))
+    if (!PyArg_ParseTuple(args, "Oiiii", &py_data_points, &N, &dim, &max_iter, &g))
         return;
     printf("C-%d\n", 1);
     /* Validation */
@@ -35,8 +35,7 @@ static void fit_general(PyObject* self, PyObject* args) {
 
     /* Convert Arrays from Python to C */
     py_list_to_array(py_data_points, n, m, data_points);
-
-
+    
     printf("C-%d\n", 3);
     /* Init graph */
     graph.vertices = data_points;
@@ -61,7 +60,6 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     double **result;
     int N, dim, K, max_iter;
     int i, j, n, m;
-    DataWrapper data_points_wrapper;
     Graph graph = {0};
 
     if (!PyArg_ParseTuple(args, "Oiiii", &py_data_points, &N, &dim, &K, &max_iter))
@@ -73,21 +71,12 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     n = (int)PyList_Size(py_data_points);
     m = (int)PyList_Size(PyList_GetItem(py_data_points, 0));
 
-    /* Init a 2-dimentaional array for the result */ 
-    data_points_wrapper.container = calloc((n * m), sizeof(double));
-    assert(data_points_wrapper.container != NULL);
-    data_points_wrapper.pointers = calloc(n, sizeof(double*));
-    assert(data_points_wrapper.pointers != NULL);
-
-    for (i = 0; i < n; i++) {
-        data_points_wrapper.pointers[i] = data_points_wrapper.container + i*m;
-    }
+    /* Init a 2-dimentaional array */ 
+    data_points = calloc_2d_array(n, m);
 
     /* Convert Arrays from Python to C */
-    /*
-    py_list_to_array(py_data_points, n, m, data_points_wrapper);
-    data_points = data_points_wrapper.pointers;
-    */
+    py_list_to_array(py_data_points, n, m, data_points);
+
     /* Init graph */
     graph.vertices = data_points;
     graph.N = N;
@@ -107,7 +96,7 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
         PyList_SET_ITEM(py_result, i, py_vector);
     }
 
-    free(data_points_wrapper.container);
+    free_2d_array(data_points);
     free(result);
 
     return py_result;
@@ -119,7 +108,6 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     double **centroids, **data_points, **result;
     int N, dim, K, max_iter;
     int n, m, i;
-    DataWrapper centroids_wrapper, data_points_wrapper;
 
     if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
         return;
@@ -134,50 +122,26 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     n = (int)PyList_Size(py_data);
     m = (int)PyList_Size(PyList_GetItem(py_data, 0));
 
-    /* Init a 2-dimentaional array for the result */ 
-    data_points_wrapper.container = calloc((n * m), sizeof(double));
-    assert(data_points_wrapper.container != NULL);
-    data_points_wrapper.pointers = calloc(n, sizeof(double*));
-    assert(data_points_wrapper.pointers != NULL);
-
-    for (i = 0; i < n; i++) {
-        data_points_wrapper.pointers[i] = data_points_wrapper.container + i*m;
-    }
-
+    /* Init a 2-dimentaional array for data_points */ 
+    data_points = calloc_2d_array(n, m);
+    
     /* Convert Arrays from Python to C */
-
-    /*
-    py_list_to_array(py_data, n, m, data_points_wrapper);
-    data_points = data_points_wrapper.pointers;
-    */
+    py_list_to_array(py_data, n, m, data_points);
 
     /* Allocate memory for centroids_wrapper */
 
     n = (int)PyList_Size(py_centroids);
     m = (int)PyList_Size(PyList_GetItem(py_centroids, 0));
 
-    /* Init a 2-dimentaional array for the result */ 
-    centroids_wrapper.container = calloc((n * m), sizeof(double));
-    assert(centroids_wrapper.container != NULL);
-    centroids_wrapper.pointers = calloc(n, sizeof(double*));
-    assert(centroids_wrapper.pointers != NULL);
-
-    for (i = 0; i < n; i++) {
-        centroids_wrapper.pointers[i] = centroids_wrapper.container + i*m;
-    }
-
+    /* Init a 2-dimentaional array for data_points */ 
+    centroids = calloc_2d_array(n, m);
+    
     /* Convert Arrays from Python to C */
-
-    /*
-    py_list_to_array(py_centroids, n, m, centroids_wrapper);
-    centroids = centroids_wrapper.pointers;
-    */
+    py_list_to_array(py_data, n, m, centroids);
 
     result = centroids;
     /* Main Algorithm - should call another func here which will call kmeans */
     kmeans(data_points, N, dim, K, max_iter, result);
-    /* with the new interface:
-    result = get_spk_clusters(data_points, centroids, N, dim, K, max_iter); */
 
     /* Print indices */
     for (i = 0; i < K; i++) {
@@ -193,8 +157,8 @@ static void fit_finish_spk(PyObject* self, PyObject* args) {
     print_matrix(result, N, K);
 
     /* Free Memory */
-    free(centroids_wrapper.container);
-    free(data_points_wrapper.container);
+    free_2d_array(data_points);
+    free_2d_array(centroids);
 }
 
 /* Convert PyObject array into a double 2d array */

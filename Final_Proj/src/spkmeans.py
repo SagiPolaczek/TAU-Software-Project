@@ -105,18 +105,17 @@ assert d > 0, "d must be greater than zero!"
 assert K < N, "K must be smaller than N!"
 print(4)
 if goal == "spk":
-    data_points = spk.fit_init_spk()
-    initial_centroids, centroids_indices = init_centroids(data_points, N, d, d) # K = d
-    spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, d, d, max_iter) # K = d
+    data_points = spk.fit_init_spk(data_points, N, d, K, max_iter)
+    initial_centroids, centroids_indices = init_centroids(data_points, N, K, K) # d = K
+    spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, K, K, max_iter) # d = K
     print(5)
 elif goal == "wam":
-    spk.fit_general(data_points, N, d, K, max_iter, ord('w'))
-    print(6)
+    spk.fit_general(data_points, N, d, max_iter, ord('w'))
 elif goal == "ddg":
-    spk.fit_general(data_points, N, d, K, max_iter, ord('d'))
+    spk.fit_general(data_points, N, d, max_iter, ord('d'))
 elif goal == "lnorm":
-    spk.fit_general(data_points, N, d, K, max_iter, ord('l'))
+    spk.fit_general(data_points, N, d, max_iter, ord('l'))
 elif goal == "jacobi":
-    spk.fit_general(data_points, N, d, K, max_iter, ord('j'))
+    spk.fit_general(data_points, N, d, max_iter, ord('j'))
 else:
     assert False, "Invalid goal input!"
