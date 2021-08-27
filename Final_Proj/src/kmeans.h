@@ -30,3 +30,4 @@ int find_closest_centroid(double **centroids, double *data_point, int K, int d);
 double compute_distance(double *u, double *v, int dim);
 int update_centroids(double **centroids, Cluster *clusters, int K, int dim);
 void add_datapoint_to_cluster(Cluster *clusters, int cluster_index, double *data_point, int dim);
+void init_centroids(double **data_points, int K, int dim, double **centroids);

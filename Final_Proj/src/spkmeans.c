@@ -17,7 +17,7 @@
 
 /*
     Command Line Interface in the following format:
-    K, goal, file_name
+    argv = [K, goal, file_name], argc = 4
 */
 int main(int argc, char *argv[]) {
     char *goal_string, *file_path;
