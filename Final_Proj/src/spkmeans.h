@@ -44,8 +44,7 @@ double compute_degree(double **weights, int v_idx, int n);
 void print_matrix(double **mat, int rows, int cols);
 void print_transpose_matrix(double **mat, int rows, int cols);
 void print_vector_as_matrix(double *diag, int n);
-void multi_vec_mat(double *vec, double **mat, int n, double **res);
-void multi_mat_vec(double **mat, double *vec, int n, double **res);
+void multi_vec_mat_vec(double *vec, double **mat, int n, double **res);
 void inverse_sqrt_vec(double *vector, int N, double *inv_sqrt_vec);
 void init_idendity_matrix(int N, double** matrix);
 

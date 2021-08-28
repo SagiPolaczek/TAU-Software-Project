@@ -243,8 +243,7 @@ void compute_lnorm(Graph *graph)
     inverse_sqrt_vec(degs, N, invsqrt_d);
 
     /* (invsqrt_d * W * invsqrt_d) = ((invsqrt_d * W) * invsqrt_d) */
-    multi_vec_mat(invsqrt_d, weights, N, lnorm);
-    multi_mat_vec(lnorm, invsqrt_d, N, lnorm);
+    multi_vec_mat_vec(invsqrt_d, weights, N, lnorm);
 
     free(invsqrt_d);
 
@@ -274,10 +273,10 @@ void inverse_sqrt_vec(double *vector, int N, double *inv_sqrt_vec)
 }
 
 /*
-    Compute multiplication of: ' VECTOR * MATRIX '
+    Compute multiplication of: ' VECTOR * MATRIX * VECTOR'
     when the 'VECTOR' is a diagonal matrix A such that A[i][i]=V[i]
 */
-void multi_vec_mat(double *vec, double **mat, int n, double **res)
+void multi_vec_mat_vec(double *vec, double **mat, int n, double **res)
 {
     int i, j;
 
@@ -285,24 +284,7 @@ void multi_vec_mat(double *vec, double **mat, int n, double **res)
     {
         for (j = 0; j < n; j++)
         {
-            res[i][j] = vec[i] * mat[i][j];
-        }
-    }
-}
-
-/*
-    Compute multiplication of: ' MATRIX * VECTOR '
-    when the 'VECTOR' is a diagonal matrix A such that A[i][i]=V[i]
-*/
-void multi_mat_vec(double **mat, double *vec, int n, double **res)
-{
-    int i, j;
-
-    for (i = 0; i < n; i++)
-    {
-        for (j = 0; j < n; j++)
-        {
-            res[j][i] = vec[i] * mat[j][i];
+            res[i][j] = vec[i] * mat[i][j] * vec[j];
         }
     }
 }
