@@ -104,6 +104,7 @@ static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
 
     if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
         return NULL;
+
     
     /* Validation */
     assert(PyList_Check(py_centroids));
@@ -135,10 +136,10 @@ static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     result = centroids;
     /* Main Algorithm - should call another func here which will call kmeans */
     kmeans(data_points, N, dim, K, max_iter, result);
-
+    
     /* Print centroids */
-    print_matrix(result, N, K);
-
+    print_matrix(result, K, K);
+    
     /* Free Memory */
     free_2d_array(data_points);
     free_2d_array(centroids);

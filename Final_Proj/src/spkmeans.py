@@ -98,7 +98,7 @@ assert N > 0, "N must be greater than zero!"
 d = len(data_points[0])
 assert d > 0, "d must be greater than zero!"
 
-assert K < N, "K must be smaller than N!"
+assert K <= N, "K must be smaller than N!"
 
 if goal == "spk":
     data_points = spk.fit_init_spk(data_points, N, d, K, max_iter)
