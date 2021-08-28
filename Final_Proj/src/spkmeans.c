@@ -576,7 +576,6 @@ double **init_spk_datapoints(Graph *graph, int *K) {
     free(eigenvalues); 
     free_2d_array(eigenvectors);
     
-    print_matrix(T, N, *K);
     return T;
 }
 
