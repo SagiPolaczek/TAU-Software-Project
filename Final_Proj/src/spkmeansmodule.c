@@ -136,7 +136,7 @@ static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     centroids = calloc_2d_array(n, m);
     
     /* Convert Arrays from Python to C */
-    py_list_to_array(py_data, n, m, centroids);
+    py_list_to_array(py_centroids, n, m, centroids);
 
     /* Main Algorithm */
     kmeans(data_points, N, dim, K, max_iter, centroids);
