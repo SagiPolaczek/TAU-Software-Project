@@ -121,7 +121,7 @@ def main():
                 print(centroids_indices[i], end=",")
 
         # Execute kmeans algorithm (HW1) with the initial centroids (HW2) and our normalized datapoints
-        spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, K, K, max_iter) # d = K
+        spk.fit_finish_spk(initial_centroids, data_points, N, K, K, max_iter) # d = K
 
     elif goal == "wam":
         # Compute WAM and print the result
