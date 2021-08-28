@@ -574,8 +574,7 @@ double **init_spk_datapoints(Graph *graph, int *K)
     /* Deep copy the eigenvalues */
     eigenvalues_sorted = calloc_vector(N);
 
-    for (i = 0; i < N; i++)
-    {
+    for (i = 0; i < N; i++) {
         eigenvalues_sorted[i] = eigenvalues[i];
     }
 
@@ -583,8 +582,7 @@ double **init_spk_datapoints(Graph *graph, int *K)
     qsort(eigenvalues_sorted, N, sizeof(double), cmp_func);
 
     /*  If K doesn't provided (k==0) determine k */
-    if (K == 0)
-    {
+    if (K == 0) {
         *K = get_heuristic(eigenvalues, N);
     }
 
@@ -618,13 +616,11 @@ int get_heuristic(double *eigenvalues, int N)
     int i, K = 0;
     double val1, val2, curr_delta;
 
-    for (i = 0; i < max_idx; i++)
-    {
+    for (i = 0; i < max_idx; i++) {
         val1 = eigenvalues[i];
         val2 = eigenvalues[i + 1];
         curr_delta = val2 - val1;
-        if (curr_delta > max_delta)
-        {
+        if (curr_delta > max_delta) {
             max_delta = curr_delta;
             K = i;
         }
@@ -644,17 +640,14 @@ void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eige
     const int NULL_VAL = -42; /* define null value when known that eigenvalues are positive */
     int i, j, r;
 
-    for (i = 0; i < K; i++)
-    {
+    for (i = 0; i < K; i++) {
         curr_sorted_val = eigenvalues_sorted[i];
-        for (j = 0; j < N; j++)
-        {
+        for (j = 0; j < N; j++) {
             curr_val = eigenvalues[j];
             if (curr_val == curr_sorted_val)
             {
                 /* place the j'th vector in the U's i'th column */
-                for (r = 0; r < N; r++)
-                {
+                for (r = 0; r < N; r++) {
                     U[r][i] = eigenvectors[r][j]; /* assume the eigenvectors arrage as columns - DOUBLE CHECK IT */
                 }
 
@@ -682,14 +675,12 @@ void form_T(double **U, int N, int K)
     /* init a vector of zeros */
     zero_vec = calloc_vector(K);
 
-    for (i = 0; i < N; i++)
-    {
+    for (i = 0; i < N; i++) {
         vec = U[i];
         /* compute the row vector's length */
         vec_len = compute_distance_spk(vec, zero_vec, K);
 
-        for (j = 0; j < K; j++)
-        {
+        for (j = 0; j < K; j++) {
             vec[j] = (vec[j] / vec_len);
         }
     }
@@ -744,27 +735,22 @@ void free_graph(Graph *graph, goal goal)
 {
 
     free_matrix(graph->vertices);
-    if (goal == jacobi)
-    {
+    if (goal == jacobi) {
         return;
     }
 
     free_matrix(graph->weights);
-    if (goal == wam)
-    {
+    if (goal == wam) {
         return;
     }
 
     free(graph->degrees);
 
-    if (goal == ddg)
-    {
+    if (goal == ddg) {
         return;
     }
 
     free_matrix(graph->lnorm);
-
-    return;
 }
 
 /*
@@ -783,8 +769,7 @@ int get_sign(double d)
 */
 void my_assert(int status)
 {
-    if (status == 0)
-    {
+    if (status == 0) {
         printf(ERR_MSG);
         exit(1);
     }
@@ -795,8 +780,7 @@ void compute_by_goal(Graph *graph, goal goal)
     double *eigenvalues, **eigenvectors, **A;
     int N = graph->N;
 
-    if (goal == jacobi)
-    {
+    if (goal == jacobi) {
 
         /* Allocate memory for the eigenvectors & eigenvalues */
         eigenvectors = calloc_matrix(N, N);
@@ -822,8 +806,7 @@ void compute_by_goal(Graph *graph, goal goal)
     compute_wam(graph);
 
     /* If the goal is only to compute the WAM, we finished */
-    if (goal == wam)
-    {
+    if (goal == wam) {
         print_matrix(graph->weights, N, N);
 
         free_graph(graph, wam);
@@ -833,8 +816,7 @@ void compute_by_goal(Graph *graph, goal goal)
 
     compute_ddg(graph);
 
-    if (goal == ddg)
-    {
+    if (goal == ddg) {
         print_vector_as_matrix(graph->degrees, N);
 
         free_graph(graph, ddg);
@@ -843,8 +825,7 @@ void compute_by_goal(Graph *graph, goal goal)
 
     compute_lnorm(graph);
 
-    if (goal == lnorm)
-    {
+    if (goal == lnorm) {
         print_matrix(graph->lnorm, N, N);
 
         free_graph(graph, lnorm);
