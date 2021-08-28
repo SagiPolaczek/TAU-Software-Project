@@ -344,7 +344,6 @@ void compute_jacobi(double **A, int N, double **eigenvectors, double *eigenvalue
         /* Compute the difference: off(A)^2 - off(A')^2 */
         off_diff = compute_off_diagonal_difference(A, A_tag, N, i, j);
 
-        /* 'Deep' update A = A' */
         update_A(A, A_tag, N, i, j);
 
         if (off_diff <= EPS || iter_count >= MAX_ITER_JACOBI) {
@@ -381,10 +380,7 @@ void update_eigenvectors(double **eigenvectors, double **eigenvectors_deepcopy,
     for (r = 0; r < N; r++) {
         eigenvectors_deepcopy[r][i] = eigenvectors[r][i];
         eigenvectors_deepcopy[r][j] = eigenvectors[r][j];
-
     }
-
-
 }
 
 void update_A_tag(double **A, double **A_tag, int N, int i, int j, double c, double s)
@@ -438,11 +434,13 @@ double compute_off_diagonal_difference(double **A, double **A_tag, int N, int i,
     return off_diff;
 }
 
+/* 
+    Initialize 'matrix' as the idendity matrix I 
+*/
 void init_idendity_matrix(int N, double** matrix)
 {
     int i,j;
-    for (i = 0; i < N; i++)
-    {
+    for (i = 0; i < N; i++) {
         for (j = 0; j < N; j++)
         {
             matrix[i][j] = (i == j);
@@ -474,20 +472,16 @@ void print_matrix(double **mat, int rows, int cols)
     double val;
     int i, j;
 
-    for (i = 0; i < rows; i++)
-    {
+    for (i = 0; i < rows; i++) {
         vec = mat[i];
-        for (j = 0; j < cols; j++)
-        {
+        for (j = 0; j < cols; j++) {
             val = vec[j];
             /* Avoiding '-0.0000' */
-            if (val < 0 && val > -0.00005)
-            {
+            if (val < 0 && val > -0.00005) {
                 val = 0;
             }
             printf("%.4f", val);
-            if (j < cols - 1)
-            {
+            if (j < cols - 1) {
                 printf(",");
             }
         }
@@ -508,18 +502,14 @@ void print_transpose_matrix(double **mat, int rows, int cols)
     double val;
     int i, j;
 
-    for (i = 0; i < cols; i++)
-    {
-        for (j = 0; j < rows; j++)
-        {
+    for (i = 0; i < cols; i++) {
+        for (j = 0; j < rows; j++) {
             val = mat[j][i];
-            if (val < 0 && val > -0.00005)
-            {
+            if (val < 0 && val > -0.00005) {
                 val = 0;
             }
             printf("%.4f", val);
-            if (j < rows - 1)
-            {
+            if (j < rows - 1) {
                 printf(",");
             }
         }
