@@ -282,12 +282,12 @@ void multi_vec_mat_vec(double *vec, double **mat, int n, double **res)
 
 /*
     Compute Jacobi as has been described in the task.
-    When: A_tag := A'
+    When: A_tag := A', eigenvectors := V (Corresponding to the task).
 */
-void compute_jacobi(double **A, int N, double **eigenvectors, double *eigen_vals)
+void compute_jacobi(double **A, int N, double **eigenvectors, double *eigenvalues)
 {
     int is_not_diag = 1;
-    int i, j, r, q;
+    int i, j, r;
     int max_row, max_col;
     int sign_theta;
     double theta, c, s, t;
@@ -305,11 +305,9 @@ void compute_jacobi(double **A, int N, double **eigenvectors, double *eigen_vals
         }
     }
 
-    /* Initalize the Idendity Matrix */
-    init_idendity_matrix(N, eigenvectors);
-
-    /* Eigenvaluse deep copy */
     eigenvectors_deepcopy = calloc_matrix(N, N);
+    init_idendity_matrix(N, eigenvectors);
+    init_idendity_matrix(N, eigenvectors_deepcopy);
 
     iter_count = 1;
     while (is_not_diag) {
@@ -333,32 +331,18 @@ void compute_jacobi(double **A, int N, double **eigenvectors, double *eigen_vals
         i = max_row;
         j = max_col;
 
-        /* Obtain c,s (P) */
+        /* Obtain c,s (P matrix) */
         theta = (A[j][j] - A[i][i]) / (2 * A[i][j]);
         sign_theta = get_sign(theta);
         t = sign_theta / (fabs(theta) + sqrt(pow(theta, 2) + 1));
         c = 1 / sqrt(pow(t, 2) + 1);
         s = t * c;
 
-        /* Update A_tag */
         update_A_tag(A, A_tag, N, i, j, c, s);
-        
-        /* Update the deep copy of the eigenvectors*/
-        for (r = 0; r < N; r++) {
-            for (q = 0; q < N; q++) {
-                eigenvectors_deepcopy[r][q] = eigenvectors[r][q];
-            }
-        }
-
-        /* Update Eigenvectors' matrix */
-        for (r = 0; r < N; r++) {
-            eigenvectors[r][i] = c * eigenvectors_deepcopy[r][i] - s * eigenvectors_deepcopy[r][j];
-            eigenvectors[r][j] = c * eigenvectors_deepcopy[r][j] + s * eigenvectors_deepcopy[r][i];
-        }
+        update_eigenvectors(eigenvectors, eigenvectors_deepcopy, N, i, j, c, s);
 
         /* Compute the difference: off(A)^2 - off(A')^2 */
         off_diff = compute_off_diagonal_difference(A, A_tag, N, i, j);
-        
 
         /* 'Deep' update A = A' */
         update_A(A, A_tag, N, i, j);
@@ -369,11 +353,11 @@ void compute_jacobi(double **A, int N, double **eigenvectors, double *eigen_vals
         }
 
         iter_count += 1;
-    }
+    } /* While is not diagonal */
 
     /* Update Eigenvalues */
-    for (i = 0; i < N; i++) {
-        eigen_vals[i] = A[i][i];
+    for (r = 0; r < N; r++) {
+        eigenvalues[r] = A[r][r];
     }
 
     /* Free <3 */
@@ -381,6 +365,26 @@ void compute_jacobi(double **A, int N, double **eigenvectors, double *eigen_vals
     free_matrix(eigenvectors_deepcopy);
 
     return;
+}
+
+void update_eigenvectors(double **eigenvectors, double **eigenvectors_deepcopy,
+                        int N, int i, int j, double c, double s)
+{
+    int r;
+    /* Update Eigenvectors' matrix */
+    for (r = 0; r < N; r++) {
+        eigenvectors[r][i] = c * eigenvectors_deepcopy[r][i] - s * eigenvectors_deepcopy[r][j];
+        eigenvectors[r][j] = c * eigenvectors_deepcopy[r][j] + s * eigenvectors_deepcopy[r][i];
+    }
+
+    /* Update the deep copy of the eigenvectors*/
+    for (r = 0; r < N; r++) {
+        eigenvectors_deepcopy[r][i] = eigenvectors[r][i];
+        eigenvectors_deepcopy[r][j] = eigenvectors[r][j];
+
+    }
+
+
 }
 
 void update_A_tag(double **A, double **A_tag, int N, int i, int j, double c, double s)

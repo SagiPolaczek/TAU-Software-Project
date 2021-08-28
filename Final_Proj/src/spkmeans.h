@@ -42,6 +42,7 @@ double compute_degree(double **weights, int v_idx, int n);
 double compute_off_diagonal_difference(double **A, double **A_tag, int N, int i, int j);
 void update_A_tag(double **A, double **A_tag, int N, int i, int j, double c, double s);
 void update_A(double **A, double **A_tag, int N, int i, int j);
+void update_eigenvectors(double **eigenvectors, double **eigenvectors_deepcopy,int N, int i, int j, double c, double s);
 
 /* Matrix Utils */
 void print_matrix(double **mat, int rows, int cols);
