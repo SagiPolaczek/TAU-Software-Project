@@ -28,7 +28,7 @@ static PyObject* fit_general(PyObject* self, PyObject* args) {
     n = (int)PyList_Size(py_data_points);
     m = (int)PyList_Size(PyList_GetItem(py_data_points, 0));
     
-    data_points = calloc_2d_array(n, m);
+    data_points = calloc_matrix(n, m);
 
     py_list_to_array(py_data_points, n, m, data_points);
     
@@ -67,7 +67,7 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     m = (int)PyList_Size(PyList_GetItem(py_data, 0));
 
     /* Init a 2-dimentaional array */ 
-    data_points = calloc_2d_array(n, m);
+    data_points = calloc_matrix(n, m);
 
     /* Convert Arrays from Python to C */
     py_list_to_array(py_data, n, m, data_points);
@@ -93,7 +93,7 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     }
 
     /* Free Memory */
-    free_2d_array(data_points);
+    free_matrix(data_points);
     free(result);
 
     return py_result;
@@ -122,7 +122,7 @@ static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     m = (int)PyList_Size(PyList_GetItem(py_data, 0));
 
     /* Init a 2-dimentaional array for data_points */ 
-    data_points = calloc_2d_array(n, m);
+    data_points = calloc_matrix(n, m);
     
     /* Convert Arrays from Python to C */
     py_list_to_array(py_data, n, m, data_points);
@@ -133,7 +133,7 @@ static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     m = (int)PyList_Size(PyList_GetItem(py_centroids, 0));
 
     /* Init a 2-dimentaional array for data_points */ 
-    centroids = calloc_2d_array(n, m);
+    centroids = calloc_matrix(n, m);
     
     /* Convert Arrays from Python to C */
     py_list_to_array(py_centroids, n, m, centroids);
@@ -145,8 +145,8 @@ static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     print_matrix(centroids, K, K);
     
     /* Free Memory */
-    free_2d_array(data_points);
-    free_2d_array(centroids);
+    free_matrix(data_points);
+    free_matrix(centroids);
 
     return PyLong_FromLong(42);
 }

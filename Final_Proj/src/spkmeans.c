@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     {
         data_points = init_spk_datapoints(&graph, &K);
 
-        centroids = calloc_2d_array(K, K);
+        centroids = calloc_matrix(K, K);
         init_centroids(data_points, K, K, centroids);
 
         kmeans(data_points, N, K, K, MAX_ITER_KMEANS, centroids);
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
         print_matrix(centroids, K, K);
 
         free_graph(&graph, goal);
-        free_2d_array(centroids);
-        free_2d_array(data_points);
+        free_matrix(centroids);
+        free_matrix(data_points);
     }
 
     return 42;
@@ -101,7 +101,7 @@ void read_data(Graph *graph, char *file_path)
     rewind(ptr);
 
     /* Init a 2-dimentaional array for the data (vectors)*/
-    data_points = calloc_2d_array(data_count, dim);
+    data_points = calloc_matrix(data_count, dim);
 
     /* Put the data from the stream into the Array */
     for (i = 0; i < data_count; i++)
@@ -135,7 +135,7 @@ void compute_wam(Graph *graph)
     dim = graph->dim;
 
     /* Allocate memory for the WAM */
-    weights = calloc_2d_array(N, N);
+    weights = calloc_matrix(N, N);
     graph->weights = weights;
 
     for (i = 0; i < N; i++)
@@ -166,8 +166,7 @@ double compute_distance_spk(double *vec1, double *vec2, int dim)
     double distance = 0, res;
 
     /* Compute NORM */
-    for (i = 0; i < dim; i++)
-    {
+    for (i = 0; i < dim; i++) {
         distance += pow((vec1[i] - vec2[i]), 2);
     }
 
@@ -195,11 +194,10 @@ void compute_ddg(Graph *graph)
     N = graph->N;
 
     /* Allocate memory for the DDG's "matrix" - represented by vector */
-    ddg = calloc_1d_array(N);
+    ddg = calloc_vector(N);
     graph->degrees = ddg;
 
-    for (i = 0; i < N; i++)
-    {
+    for (i = 0; i < N; i++) {
         deg = compute_degree(weights, i, N);
         ddg[i] = deg;
     }
@@ -214,8 +212,7 @@ double compute_degree(double **weights, int v_idx, int n)
     int i;
     double deg = 0;
 
-    for (i = 0; i < n; i++)
-    {
+    for (i = 0; i < n; i++) {
         deg += weights[v_idx][i];
     }
 
@@ -235,23 +232,20 @@ void compute_lnorm(Graph *graph)
     double **lnorm;
 
     /* Allocate memory for the Lnorm's matrix */
-    lnorm = calloc_2d_array(N, N);
+    lnorm = calloc_matrix(N, N);
     graph->lnorm = lnorm;
 
-    invsqrt_d = calloc_1d_array(N);
+    invsqrt_d = calloc_vector(N);
 
     inverse_sqrt_vec(degs, N, invsqrt_d);
 
-    /* (invsqrt_d * W * invsqrt_d) = ((invsqrt_d * W) * invsqrt_d) */
     multi_vec_mat_vec(invsqrt_d, weights, N, lnorm);
 
     free(invsqrt_d);
 
     /* res = I - res */
-    for (i = 0; i < N; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
             lnorm[i][j] = (-1) * lnorm[i][j];
         }
         lnorm[i][i] += 1;
@@ -265,8 +259,7 @@ void inverse_sqrt_vec(double *vector, int N, double *inv_sqrt_vec)
 {
     int i;
 
-    for (i = 0; i < N; i++)
-    {
+    for (i = 0; i < N; i++) {
         inv_sqrt_vec[i] = pow(vector[i], -0.5);
     }
     return;
@@ -280,72 +273,63 @@ void multi_vec_mat_vec(double *vec, double **mat, int n, double **res)
 {
     int i, j;
 
-    for (i = 0; i < n; i++)
-    {
-        for (j = 0; j < n; j++)
-        {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
             res[i][j] = vec[i] * mat[i][j] * vec[j];
         }
     }
 }
 
 /*
-    Compute Jacobi.
-    TODO:
-    Elaborate & split to several functions (sagi).
+    Compute Jacobi as has been described in the task.
+    When: A_tag := A'
 */
-void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals)
+void compute_jacobi(double **A, int N, double **eigenvectors, double *eigen_vals)
 {
     int is_not_diag = 1;
-    int i, j, r;
+    int i, j, r, q;
     int max_row, max_col;
     int sign_theta;
-    double theta, c, s, t, s_sq, c_sq;
+    double theta, c, s, t;
     double max_entry, curr_entry;
-    double **A_tag, **eigen_vecs_dcopy;
+    double **A_tag, **eigenvectors_deepcopy;
     double off_diff;
     int iter_count;
     const double EPS = pow(10, -15);
 
-    /* A_tag start as deep copy of A */
-    A_tag = calloc_2d_array(N, N);
-
-    for (i = 0; i < N; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
+    /* A_tag start as a deep copy of A */
+    A_tag = calloc_matrix(N, N);
+    for (i = 0; i < N; i++){
+        for (j = 0; j < N; j++){
             A_tag[i][j] = A[i][j];
         }
     }
 
     /* Initalize the Idendity Matrix */
-    init_idendity_matrix(N, eigen_vecs);
+    init_idendity_matrix(N, eigenvectors);
 
     /* Eigenvaluse deep copy */
-    eigen_vecs_dcopy = calloc_2d_array(N, N);
+    eigenvectors_deepcopy = calloc_matrix(N, N);
 
     iter_count = 1;
-    while (is_not_diag)
-    {
+    while (is_not_diag) {
         /* Pivot - Find the maximum absolute value A_ij */
         max_row = 0;
         max_col = 1; /* Assume n >= 2 */
         max_entry = fabs(A[max_row][max_col]);
 
-        for (i = 0; i < N; i++)
-        {
-            for (j = 0; j < N; j++)
-            {
+        for (i = 0; i < N; i++) {
+            for (j = 0; j < N; j++) {
                 curr_entry = fabs(A[i][j]);
-                if ((i != j) && (curr_entry > max_entry))
-                {
+                if ((i != j) && (curr_entry > max_entry)) {
                     max_entry = curr_entry;
                     max_row = i;
                     max_col = j;
                 }
             }
         }
-
+        
+        /* Update variables to match the task's description */
         i = max_row;
         j = max_col;
 
@@ -356,70 +340,31 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals)
         c = 1 / sqrt(pow(t, 2) + 1);
         s = t * c;
 
-        /* Relation between A and A_tag */
-        i = max_row;
-        j = max_col;
-        for (r = 0; r < N; r++)
-        {
-            if ((r != i) && (r != j))
-            {
-                A_tag[r][i] = c * A[r][i] - s * A[r][j];
-                A_tag[r][j] = c * A[r][j] + s * A[r][i];
-                A_tag[i][r] = A_tag[r][i];
-                A_tag[j][r] = A_tag[r][j];
-            }
-        }
-        c_sq = pow(c, 2);
-        s_sq = pow(s, 2);
-        A_tag[i][i] = c_sq * A[i][i] + s_sq * A[j][j] - 2 * s * c * A[i][j];
-        A_tag[j][j] = s_sq * A[i][i] + c_sq * A[j][j] + 2 * s * c * A[i][j];
-        A_tag[i][j] = 0; /* (c_sq - s_sq)*A[i][j] + s*c*(A[i][i] - A[j][j]) => =0 */
-        A_tag[j][i] = 0;
-
+        /* Update A_tag */
+        update_A_tag(A, A_tag, N, i, j, c, s);
+        
         /* Update the deep copy of the eigenvectors*/
-        for (i = 0; i < N; i++)
-        {
-            for (j = 0; j < N; j++)
-            {
-                eigen_vecs_dcopy[i][j] = eigen_vecs[i][j];
+        for (r = 0; r < N; r++) {
+            for (q = 0; q < N; q++) {
+                eigenvectors_deepcopy[r][q] = eigenvectors[r][q];
             }
         }
 
-        i = max_row;
-        j = max_col;
         /* Update Eigenvectors' matrix */
-        for (r = 0; r < N; r++)
-        {
-            eigen_vecs[r][i] = c * eigen_vecs_dcopy[r][i] - s * eigen_vecs_dcopy[r][j];
-            eigen_vecs[r][j] = c * eigen_vecs_dcopy[r][j] + s * eigen_vecs_dcopy[r][i];
+        for (r = 0; r < N; r++) {
+            eigenvectors[r][i] = c * eigenvectors_deepcopy[r][i] - s * eigenvectors_deepcopy[r][j];
+            eigenvectors[r][j] = c * eigenvectors_deepcopy[r][j] + s * eigenvectors_deepcopy[r][i];
         }
 
-        /* Checking for Convergence */
-        off_diff = 0;
-        for (r = 0; r < N; r++)
-        {
-            off_diff += pow(A[r][i], 2);
-            off_diff += pow(A[r][j], 2);
-            off_diff -= pow(A_tag[r][i], 2);
-            off_diff -= pow(A_tag[r][j], 2);
-        }
-        off_diff -= pow(A[i][i], 2);
-        off_diff -= pow(A[j][j], 2);
-        off_diff += pow(A_tag[i][i], 2);
-        off_diff += pow(A_tag[j][j], 2);
+        /* Compute the difference: off(A)^2 - off(A')^2 */
+        off_diff = compute_off_diagonal_difference(A, A_tag, N, i, j);
+        
 
         /* 'Deep' update A = A' */
-        for (r = 0; r < N; r++)
-        {
-            A[r][i] = A_tag[r][i];
-            A[r][j] = A_tag[r][j];
-            A[i][r] = A_tag[r][i];
-            A[j][r] = A_tag[r][j];
-        }
+        update_A(A, A_tag, N, i, j);
 
-        if (off_diff <= EPS || iter_count >= MAX_ITER_JACOBI)
-        {
-            is_not_diag = 0;
+        if (off_diff <= EPS || iter_count >= MAX_ITER_JACOBI) {
+            is_not_diag = 0; /* Is diagonal */
             break;
         }
 
@@ -427,16 +372,66 @@ void compute_jacobi(double **A, int N, double **eigen_vecs, double *eigen_vals)
     }
 
     /* Update Eigenvalues */
-    for (i = 0; i < N; i++)
-    {
+    for (i = 0; i < N; i++) {
         eigen_vals[i] = A[i][i];
     }
 
     /* Free <3 */
-    free_2d_array(A_tag);
-    free_2d_array(eigen_vecs_dcopy);
+    free_matrix(A_tag);
+    free_matrix(eigenvectors_deepcopy);
 
     return;
+}
+
+void update_A_tag(double **A, double **A_tag, int N, int i, int j, double c, double s)
+{
+    double c_squared, s_squared;
+    int r;
+    for (r = 0; r < N; r++) {
+        if ((r != i) && (r != j)) {
+            A_tag[r][i] = c * A[r][i] - s * A[r][j];
+            A_tag[r][j] = c * A[r][j] + s * A[r][i];
+            A_tag[i][r] = A_tag[r][i];
+            A_tag[j][r] = A_tag[r][j];
+        }
+    }
+    c_squared = pow(c, 2);
+    s_squared = pow(s, 2);
+    A_tag[i][i] = c_squared * A[i][i] + s_squared * A[j][j] - 2 * s * c * A[i][j];
+    A_tag[j][j] = s_squared * A[i][i] + c_squared * A[j][j] + 2 * s * c * A[i][j];
+    A_tag[i][j] = 0; /* (c_squared - s_squared)*A[i][j] + s*c*(A[i][i] - A[j][j]) => =0 */
+    A_tag[j][i] = 0;
+}
+
+void update_A(double **A, double **A_tag, int N, int i, int j)
+{
+    int r;
+    for (r = 0; r < N; r++){
+        A[r][i] = A_tag[r][i];
+        A[r][j] = A_tag[r][j];
+        A[i][r] = A_tag[r][i];
+        A[j][r] = A_tag[r][j];
+    }
+}
+
+double compute_off_diagonal_difference(double **A, double **A_tag, int N, int i, int j)
+{
+    double off_diff = 0;
+    int r;
+
+    for (r = 0; r < N; r++){
+        off_diff += pow(A[r][i], 2);
+        off_diff += pow(A[r][j], 2);
+        off_diff -= pow(A_tag[r][i], 2);
+        off_diff -= pow(A_tag[r][j], 2);
+        }
+
+    off_diff -= pow(A[i][i], 2);
+    off_diff -= pow(A[j][j], 2);
+    off_diff += pow(A_tag[i][i], 2);
+    off_diff += pow(A_tag[j][j], 2);
+
+    return off_diff;
 }
 
 void init_idendity_matrix(int N, double** matrix)
@@ -571,28 +566,19 @@ double **init_spk_datapoints(Graph *graph, int *K)
     int N, i;
     double **U, **T;
 
-    /* FLOW:
-    1) call compute wam -> ddg -> lnorm -> jacobi -> (?) U -> T
-    2) return T
-    */
     compute_wam(graph);
     compute_ddg(graph);
     compute_lnorm(graph);
 
     /* Allocate memory for the eigenvectors & eigenvalues */
     N = graph->N;
-    eigenvectors = calloc_2d_array(N, N);
-    eigenvalues = calloc_1d_array(N);
+    eigenvectors = calloc_matrix(N, N);
+    eigenvalues = calloc_vector(N);
 
     compute_jacobi(graph->lnorm, N, eigenvectors, eigenvalues);
 
-    /* Print eigenvectors & eigenvalues */
-    print_matrix(&eigenvalues, 1, N);
-
-    print_matrix(eigenvectors, N, N); /* trans */
-
     /* Deep copy the eigenvalues */
-    eigenvalues_sorted = calloc_1d_array(N);
+    eigenvalues_sorted = calloc_vector(N);
 
     for (i = 0; i < N; i++)
     {
@@ -612,7 +598,7 @@ double **init_spk_datapoints(Graph *graph, int *K)
         Form the matrix U(nxk) which u_i is the i'th column */
 
     /* Allocate memory for the U matrix. nxk. */
-    U = calloc_2d_array(N, (*K));
+    U = calloc_matrix(N, (*K));
 
     form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);
 
@@ -622,7 +608,7 @@ double **init_spk_datapoints(Graph *graph, int *K)
 
     free(eigenvalues_sorted);
     free(eigenvalues);
-    free_2d_array(eigenvectors);
+    free_matrix(eigenvectors);
 
     return T;
 }
@@ -653,8 +639,10 @@ int get_heuristic(double *eigenvalues, int N)
 }
 
 /*
-    TODO:
-    elaborate.
+    Form U, the matrix containing the first K eigenvectors.
+    NOTE:
+    By "the first K eigenvectors" we refer to the eigenvectors that correspond 
+    to the K smallest eigenvalues.
 */
 void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eigenvalues_sorted, int N, int K)
 {
@@ -687,8 +675,9 @@ void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eige
 }
 
 /*
-    TODO:
-    elaborate.
+    Form the matrix T from U by renormalizing each of U's rows.
+    NOTE:
+    T,U naming is corresponding to the task's description.
 */
 void form_T(double **U, int N, int K)
 {
@@ -697,7 +686,7 @@ void form_T(double **U, int N, int K)
     double *vec, *zero_vec;
 
     /* init a vector of zeros */
-    zero_vec = calloc_1d_array(K);
+    zero_vec = calloc_vector(K);
 
     for (i = 0; i < N; i++)
     {
@@ -716,10 +705,8 @@ void form_T(double **U, int N, int K)
 
 /*
     Allocating memory for a vector.
-    TODO:
-    change name to 'calloc_vector'.
 */
-double *calloc_1d_array(int size)
+double *calloc_vector(int size)
 {
     double *array;
     array = calloc(size, sizeof(double));
@@ -730,10 +717,8 @@ double *calloc_1d_array(int size)
 
 /*
     Allocating memory for a matrix.
-    TODO:
-    change name to 'calloc_matrix'.
 */
-double **calloc_2d_array(int rows, int cols)
+double **calloc_matrix(int rows, int cols)
 {
     double *ptr, **array;
     int i;
@@ -751,13 +736,11 @@ double **calloc_2d_array(int rows, int cols)
 
 /*
     Free a memory of a matrix.
-    TODO:
-    change name to 'free_matrix'.
 */
-void free_2d_array(double **array)
+void free_matrix(double **matrix)
 {
-    free(array[0]);
-    free(array);
+    free(matrix[0]);
+    free(matrix);
 }
 
 /*
@@ -766,13 +749,13 @@ void free_2d_array(double **array)
 void free_graph(Graph *graph, goal goal)
 {
 
-    free_2d_array(graph->vertices);
+    free_matrix(graph->vertices);
     if (goal == jacobi)
     {
         return;
     }
 
-    free_2d_array(graph->weights);
+    free_matrix(graph->weights);
     if (goal == wam)
     {
         return;
@@ -785,7 +768,7 @@ void free_graph(Graph *graph, goal goal)
         return;
     }
 
-    free_2d_array(graph->lnorm);
+    free_matrix(graph->lnorm);
 
     return;
 }
@@ -822,8 +805,8 @@ void compute_by_goal(Graph *graph, goal goal)
     {
 
         /* Allocate memory for the eigenvectors & eigenvalues */
-        eigenvectors = calloc_2d_array(N, N);
-        eigenvalues = calloc_1d_array(N);
+        eigenvectors = calloc_matrix(N, N);
+        eigenvalues = calloc_vector(N);
 
         A = graph->vertices;
         compute_jacobi(A, N, eigenvectors, eigenvalues);
@@ -831,9 +814,10 @@ void compute_by_goal(Graph *graph, goal goal)
         /* Print eigenvectors & eigenvalues */
         print_matrix(&eigenvalues, 1, N);
 
-        print_matrix(eigenvectors, N, N); /* trans */
+        /* Transpose to print the eigenvectors as rows */
+        print_transpose_matrix(eigenvectors, N, N);
 
-        free_2d_array(eigenvectors);
+        free_matrix(eigenvectors);
         free(eigenvalues);
 
         free_graph(graph, jacobi);

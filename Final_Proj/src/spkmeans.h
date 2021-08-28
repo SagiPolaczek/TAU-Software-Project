@@ -39,6 +39,9 @@ void form_T(double **U, int N, int K);
 double **init_spk_datapoints(Graph *graph, int *K);
 double compute_distance_spk(double *vec1, double *vec2, int dim);
 double compute_degree(double **weights, int v_idx, int n);
+double compute_off_diagonal_difference(double **A, double **A_tag, int N, int i, int j);
+void update_A_tag(double **A, double **A_tag, int N, int i, int j, double c, double s);
+void update_A(double **A, double **A_tag, int N, int i, int j);
 
 /* Matrix Utils */
 void print_matrix(double **mat, int rows, int cols);
@@ -49,9 +52,9 @@ void inverse_sqrt_vec(double *vector, int N, double *inv_sqrt_vec);
 void init_idendity_matrix(int N, double** matrix);
 
 /* Memory Utils */
-double *calloc_1d_array(int size);
-double **calloc_2d_array(int rows, int cols);
-void free_2d_array(double **array);
+double *calloc_vector(int size);
+double **calloc_matrix(int rows, int cols);
+void free_matrix(double **array);
 void free_graph(Graph *graph, goal goal);
 
 /* General Utils */
