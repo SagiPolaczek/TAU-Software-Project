@@ -23,10 +23,10 @@ def read_data(file_name):
 # Initialize centroids as described in the kmeanspp algorithm (HW2)
 def init_centroids(data_points, N, d, K):
     
-    # Convert the df into an numpy array (speed)
-    
-    # dataArr = data.to_numpy() -> from HW2. since now we receive python list we to convert differently -> DELETE LATER
+    # Convert datapoints into an numpy array
     dataArr = np.array(data_points)
+
+    # Initialize centroids and indices values to zero
     centroids = np.zeros((K, d))
     centroids_indices = [0 for i in range(K)]
     
@@ -35,6 +35,7 @@ def init_centroids(data_points, N, d, K):
 
     # Select m_1 randomly from x_1 -> x_N
     random_idx = np.random.choice(N)
+    
     # Set the 0 centroid
     centroids_indices[0] = random_idx
     centroids[0] = dataArr[random_idx]
@@ -69,65 +70,74 @@ def init_centroids(data_points, N, d, K):
 
     return centroids.tolist() , centroids_indices
 
-# Reading user's Command Line arguments
-inputs = sys.argv
 
-assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!"
+# Main Algorithm 
+def main():
+    # Reading user's Command Line arguments
+    inputs = sys.argv
 
-assert inputs[1].isnumeric(), "K must be an integer"
+    assert len(inputs) == 4 or len(inputs) == 5, "The program can have only 4 or 5 arguments!"
 
-K = int(inputs[1])
-assert K >= 0, "K must be non-negative!"
+    assert inputs[1].isnumeric(), "K must be an integer"
 
-max_iter = 300
-goal = inputs[2]
-file_name = inputs[3]
+    K = int(inputs[1])
+    assert K >= 0, "K must be non-negative!"
 
-if len(inputs) == 5:
-    assert inputs[2].isnumeric(), "max_iter must be an integer"
-    assert max_iter >= 0, "max_iter must be non-negative!"
+    max_iter = 300
+    goal = inputs[2]
+    file_name = inputs[3]
 
-    max_iter = int(inputs[2])
-    goal = inputs[3]
-    file_name = inputs[4]
+    if len(inputs) == 5:
+        assert inputs[2].isnumeric(), "max_iter must be an integer"
+        assert max_iter >= 0, "max_iter must be non-negative!"
 
-data_points = read_data(file_name)
+        max_iter = int(inputs[2])
+        goal = inputs[3]
+        file_name = inputs[4]
 
-N = len(data_points)
-assert N > 0, "N must be greater than zero!"
-d = len(data_points[0])
-assert d > 0, "d must be greater than zero!"
+    data_points = read_data(file_name)
 
-assert K <= N, "K must be smaller than N!"
+    # We can assume N, d are greater than zero
+    N = len(data_points)
+    d = len(data_points[0])
 
-if goal == "spk":
-    data_points = spk.fit_init_spk(data_points, N, d, K, max_iter)
+    assert K <= N, "K must be smaller than N!"
+
+    # Execute goal algorithm based on the goal input
+    if goal == "spk":
+        # Initialize datapoints by creating the matrix T, based on our algorithm
+        data_points = spk.fit_init_spk(data_points, N, d, K, max_iter)
+        
+        # Update K if K was 0 and we called heuristic algorithm
+        if K == 0:
+            K = len(data_points[0])
+        initial_centroids, centroids_indices = init_centroids(data_points, N, K, K) # d = K
     
-    # Update K if K was 0 and we called heuristic algorithm
-    if K == 0:
-        K = len(data_points[0])
-    initial_centroids, centroids_indices = init_centroids(data_points, N, K, K) # d = K
-   
-    # Print indices as the first row of the output
-    for i in range(len(centroids_indices)):
-        if (i == len(centroids_indices)-1):
-            print(centroids_indices[i])
-        else:
-            print(centroids_indices[i], end=",")
+        # Print indices as the first row of the output
+        for i in range(len(centroids_indices)):
+            if (i == len(centroids_indices)-1):
+                print(centroids_indices[i])
+            else:
+                print(centroids_indices[i], end=",")
 
-    spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, K, K, max_iter) # d = K
+        # Execute kmeans algorithm (HW1) with the initial centroids (HW2) and our normalized datapoints
+        spk.fit_finish_spk(initial_centroids, data_points, centroids_indices, N, K, K, max_iter) # d = K
 
-elif goal == "wam":
-    spk.fit_general(data_points, N, d, max_iter, ord('w'))
+    elif goal == "wam":
+        # Compute WAM and print the result
+        spk.fit_general(data_points, N, d, max_iter, ord('w'))
 
-elif goal == "ddg":
-    spk.fit_general(data_points, N, d, max_iter, ord('d'))
+    elif goal == "ddg":
+        # Compute WAN -> DDG and print the result
+        spk.fit_general(data_points, N, d, max_iter, ord('d'))
 
-elif goal == "lnorm":
-    spk.fit_general(data_points, N, d, max_iter, ord('l'))
+    elif goal == "lnorm":
+        # Compute WAN -> DDG -> LNORM and print the result
+        spk.fit_general(data_points, N, d, max_iter, ord('l'))
 
-elif goal == "jacobi":
-    spk.fit_general(data_points, N, d, max_iter, ord('j'))
+    elif goal == "jacobi":
+        # Compute Jacobi and print the result
+        spk.fit_general(data_points, N, d, max_iter, ord('j'))
 
-else:
-    assert False, "Invalid goal input!"
+    else:
+        assert False, "Invalid goal input!"
