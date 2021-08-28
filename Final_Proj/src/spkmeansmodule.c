@@ -103,7 +103,7 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
 static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_centroids, *py_data, *py_indices;
-    double **centroids, **data_points, **result;
+    double **centroids, **data_points;
     int N, dim, K, max_iter;
     int n, m;
 
@@ -138,12 +138,11 @@ static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     /* Convert Arrays from Python to C */
     py_list_to_array(py_data, n, m, centroids);
 
-    result = centroids;
     /* Main Algorithm */
-    kmeans(data_points, N, dim, K, max_iter, result);
+    kmeans(data_points, N, dim, K, max_iter, centroids);
     
     /* Print centroids */
-    print_matrix(result, K, K);
+    print_matrix(centroids, K, K);
     
     /* Free Memory */
     free_2d_array(data_points);
