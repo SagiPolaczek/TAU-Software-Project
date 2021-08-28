@@ -3,34 +3,38 @@
 
 #include "spkmeans.h"
 
-static PyObject* fit_general(PyObject* self, PyObject* args); /* wam ddg lnorm jacobi */
+static PyObject* fit_general(PyObject* self, PyObject* args);
 static PyObject* fit_init_spk(PyObject* self, PyObject* args);
 static PyObject* fit_finish_spk(PyObject* self, PyObject* args);
 void py_list_to_array(PyObject* py_list, int n, int m, double **data_points);
 
-/* Execute our algorithm for goal wam, ddg, lnorm and jacobi */
+/* 
+    Execute our algorithm for goal wam, ddg, lnorm and jacobi 
+*/
 static PyObject* fit_general(PyObject* self, PyObject* args) {
     /* Variables Declarations */
-    PyObject *py_data_points;
+    PyObject *py_data;
     double **data_points;
     int N, dim, max_iter, g;
     int n, m;
     goal goal;
     Graph graph = {0};
 
-    if (!PyArg_ParseTuple(args, "Oiiii", &py_data_points, &N, &dim, &max_iter, &g))
+    if (!PyArg_ParseTuple(args, "Oiiii", &py_data, &N, &dim, &max_iter, &g))
         return NULL;
     
     /* Validation */
-    assert(PyList_Check(py_data_points));
+    assert(PyList_Check(py_data));
     
-    /* Convert Array from Python to C */
-    n = (int)PyList_Size(py_data_points);
-    m = (int)PyList_Size(PyList_GetItem(py_data_points, 0));
+    /* Convert py_data to double 2d-array */
+    n = (int)PyList_Size(py_data);
+    m = (int)PyList_Size(PyList_GetItem(py_data, 0));
     
+    /* Init a 2-dimentaional array */ 
     data_points = calloc_2d_array(n, m);
 
-    py_list_to_array(py_data_points, n, m, data_points);
+    /* Convert Array from Python to C */
+    py_list_to_array(py_data, n, m, data_points);
     
     /* Init graph */
     graph.vertices = data_points;
@@ -45,7 +49,9 @@ static PyObject* fit_general(PyObject* self, PyObject* args) {
     return PyLong_FromLong(42);
 }
 
-/* Normalize the datapoints and return them to Python to compute init_centroids */
+/* 
+    Normalize the datapoints and return them to Python to compute init_centroids 
+*/
 static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     /* Variables Declarations */
     PyObject *py_data;
@@ -99,24 +105,25 @@ static PyObject* fit_init_spk(PyObject* self, PyObject* args) {
     return py_result;
 }
 
-/* Execute kmeans algorithm with the normalized datapoints and initial cetroids */
+/* 
+    Execute kmeans algorithm with the normalized datapoints and initial cetroids 
+*/
 static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     /* Variables Declarations */
-    PyObject *py_centroids, *py_data, *py_indices;
+    PyObject *py_centroids, *py_data;
     double **centroids, **data_points;
     int N, dim, K, max_iter;
     int n, m;
 
-    if (!PyArg_ParseTuple(args, "OOOiiii", &py_centroids, &py_data, &py_indices, &N, &dim, &K, &max_iter))
+    if (!PyArg_ParseTuple(args, "OOiiii", &py_centroids, &py_data, &N, &dim, &K, &max_iter))
         return NULL;
 
     
     /* Validation */
     assert(PyList_Check(py_centroids));
     assert(PyList_Check(py_data));
-    assert(PyList_Check(py_indices));
 
-    /* Allocate memory for data_points_wrapper */
+    /* Allocate memory for data_points */
 
     n = (int)PyList_Size(py_data);
     m = (int)PyList_Size(PyList_GetItem(py_data, 0));
@@ -151,7 +158,9 @@ static PyObject* fit_finish_spk(PyObject* self, PyObject* args) {
     return PyLong_FromLong(42);
 }
 
-/* Convert PyObject array into a double 2d array */
+/* 
+    Convert PyObject array into a double 2d array 
+*/
 void py_list_to_array(PyObject* py_list, int n, int m, double **data_points) {
     int i, j;
     PyObject *vector, *value;
@@ -189,4 +198,3 @@ PyInit_myspkmeans(void)
 {
     return PyModule_Create(&_moduledef);
 }
-

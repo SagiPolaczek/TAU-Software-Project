@@ -97,7 +97,7 @@ def main():
 
     data_points = read_data(file_name)
 
-    # We can assume N, d are greater than zero
+    # We can assume that N and d are greater than zero
     N = len(data_points)
     d = len(data_points[0])
 
@@ -142,5 +142,6 @@ def main():
     else:
         assert False, "Invalid goal input!"
 
+# Run main function
 if __name__ == "__main__":
     main()
