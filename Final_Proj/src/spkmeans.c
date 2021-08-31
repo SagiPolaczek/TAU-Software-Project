@@ -582,8 +582,8 @@ double **init_spk_datapoints(Graph *graph, int *K)
     qsort(eigenvalues_sorted, N, sizeof(double), cmp_func);
 
     /*  If K doesn't provided (k==0) determine k */
-    if (K == 0) {
-        *K = get_heuristic(eigenvalues, N);
+    if (*K == 0) {
+        *K = get_heuristic(eigenvalues_sorted, N);
     }
 
     /*  Obtain the first (ordered!) k eigenvectors u1, ..., uk
