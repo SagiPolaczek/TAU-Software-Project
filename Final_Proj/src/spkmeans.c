@@ -842,6 +842,9 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
     Cluster *clusters;
 
     clusters = init_clusters(K, dim);
+    printf("\nData point inside kmeans:\n");
+    print_matrix(data_points, N, K);
+    printf("\n---\n");
 
     /* Main Algorithm's Loop */
     count_iter = 0;
@@ -860,9 +863,9 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
         seen_changes = update_centroids(centroids, clusters, K, dim);
     }
     printf("\ncount_iter=%d\n", count_iter);
-    printf("----");
+    printf("\n----\n");
     print_matrix(centroids, K, K);
-    printf("\n----");
+    printf("\n----\n");
 
     /* Free memory */
     free(clusters);
