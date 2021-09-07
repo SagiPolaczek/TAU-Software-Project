@@ -584,11 +584,6 @@ double **init_spk_datapoints(Graph *graph, int *K)
     /*  If K doesn't provided (k==0) determine k */
     if (*K == 0) {
         *K = get_heuristic(eigenvalues_sorted, N);
-        printf("\nK=%d\n", *K);
-        print_matrix(&eigenvalues, 1, N);
-        printf("\n");
-        print_matrix(&eigenvalues_sorted, 1, N);
-        printf("\n");
     }
 
     /*  Obtain the first (ordered!) k eigenvectors u1, ..., uk
