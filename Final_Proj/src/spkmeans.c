@@ -881,6 +881,7 @@ Cluster *init_clusters(int K, int dim)
 {
     Cluster *clusters;
     int i;
+    int *count;
     double *array;
 
     /* Allocate space and Init clusters to default */
@@ -892,9 +893,13 @@ Cluster *init_clusters(int K, int dim)
         array = calloc(dim, sizeof(double));
         assert(array != NULL);
 
+        /* Allocate pointer to count as a singleton */
+        count = calloc(1, sizeof(int));
+        assert(count != NULL);
+
         /* Attach */
         clusters[i].vector_sum = array;
-        clusters[i].count = 0;
+        clusters[i].count = count;
     }
 
     return clusters;
@@ -948,7 +953,7 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim)
     for (i = 0; i < K; i++) {
         cluster = clusters[i];
         cluster_vector = cluster.vector_sum;
-        cluster_count = cluster.count;
+        cluster_count = cluster.count[0];
         centroid = centroids[i];
 
         /* If cluster not empty */
@@ -964,7 +969,7 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim)
                 cluster_vector[j] = 0;
             }
             /* Zerofy cluster's count */
-            cluster.count = 0;
+            cluster.count[0] = 0;
         }
     }
     return seen_changes;
@@ -986,7 +991,7 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
         cluster_vector[i] += data_point[i];
     }
     /* Raise count by one */
-    cluster.count += 1;
+    cluster.count[0] += 1;
 }
 
 void init_centroids(double **data_points, int K, int dim, double **centroids)
