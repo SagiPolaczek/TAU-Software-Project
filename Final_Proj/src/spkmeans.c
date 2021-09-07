@@ -36,7 +36,6 @@ int main(int argc, char *argv[])
 
     /* Read the data into graph's {vertices, N, dim} */
     read_data(&graph, file_path);
-    print_matrix(graph.vertices, graph.N, graph.dim);
     N = graph.N;
 
     /* goal == wam / ddg / lnorm / jacobi */
