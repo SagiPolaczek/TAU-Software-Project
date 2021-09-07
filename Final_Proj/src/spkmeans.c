@@ -860,6 +860,9 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
         seen_changes = update_centroids(centroids, clusters, K, dim);
     }
     printf("\ncount_iter=%d\n", count_iter);
+    printf("----");
+    print_matrix(centroids, K, K);
+    printf("\n----");
 
     /* Free memory */
     free(clusters);
