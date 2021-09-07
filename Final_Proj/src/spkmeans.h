@@ -21,7 +21,7 @@ typedef enum goal
 struct Cluster
 {
     double *vector_sum;
-    int count;
+    int *count;
 };
 typedef struct Cluster Cluster;
 
