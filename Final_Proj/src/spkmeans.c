@@ -881,7 +881,6 @@ Cluster *init_clusters(int K, int dim)
 {
     Cluster *clusters;
     int i;
-    int *count;
     double *array;
 
     /* Allocate space and Init clusters to default */
@@ -892,10 +891,6 @@ Cluster *init_clusters(int K, int dim)
         /* Allocate array for each cluster */
         array = calloc(dim, sizeof(double));
         assert(array != NULL);
-
-        /* Allocate pointer to count as a singleton */
-        count = calloc(1, sizeof(int));
-        assert(count != NULL);
 
         /* Attach */
         clusters[i].vector_sum = array;
