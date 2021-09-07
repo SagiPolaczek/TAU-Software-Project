@@ -991,7 +991,7 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
         cluster_vector[i] += data_point[i];
     }
     /* Raise count by one */
-    cluster.count[0] += 1;
+    cluster.count += 1;
 }
 
 void init_centroids(double **data_points, int K, int dim, double **centroids)
