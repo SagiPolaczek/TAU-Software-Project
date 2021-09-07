@@ -850,6 +850,10 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
 
     while ((seen_changes == 1) && (count_iter < max_iter))
     {
+        printf("\ncount_iter=%d\n", count_iter);
+        printf("\n----\n");
+        print_matrix(centroids, K, K);
+        printf("\n----\n");
         count_iter++;
 
         for (i = 0; i < N; i++) {
