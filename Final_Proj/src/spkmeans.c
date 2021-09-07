@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
 
     /* Read the data into graph's {vertices, N, dim} */
     read_data(&graph, file_path);
+    print_matrix(graph.vertices, graph.N, graph.dim);
     N = graph.N;
 
     /* goal == wam / ddg / lnorm / jacobi */
@@ -75,8 +76,7 @@ void read_data(Graph *graph, char *file_path)
     double **data_points;
     int i, j;
     FILE *ptr = fopen(file_path, "r");
-    if (ptr == NULL)
-    {
+    if (ptr == NULL) {
         printf(ERR_MSG);
         exit(1);
     }
@@ -85,13 +85,11 @@ void read_data(Graph *graph, char *file_path)
     while (fscanf(ptr, "%lf%c", &value, &c) == 2)
     {
         /* Get dimention */
-        if (first_round == 1)
-        {
+        if (first_round == 1) {
             dim++;
         }
 
-        if (c == '\n')
-        {
+        if (c == '\n') {
             first_round = 0;
             /* Keep track on the vectors' amount */
             data_count++;
@@ -485,7 +483,9 @@ void print_matrix(double **mat, int rows, int cols)
                 printf(",");
             }
         }
-        printf("\n");
+        if (i < rows - 1) {
+            printf("\n");
+        }
     }
 }
 
@@ -584,6 +584,11 @@ double **init_spk_datapoints(Graph *graph, int *K)
     /*  If K doesn't provided (k==0) determine k */
     if (*K == 0) {
         *K = get_heuristic(eigenvalues_sorted, N);
+        printf("\nK=%d\n", *K);
+        print_matrix(&eigenvalues, 1, N);
+        printf("\n");
+        print_matrix(&eigenvalues_sorted, 1, N);
+        printf("\n");
     }
 
     /*  Obtain the first (ordered!) k eigenvectors u1, ..., uk
@@ -622,7 +627,7 @@ int get_heuristic(double *eigenvalues, int N)
         curr_delta = val2 - val1;
         if (curr_delta > max_delta) {
             max_delta = curr_delta;
-            K = i;
+            K = i + 1;
         }
     }
     return K;
