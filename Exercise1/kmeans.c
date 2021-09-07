@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
 
         seen_changes = update_centroids(centroids, clusters, K, dim);
     }
+    printf("\ncount_iter=%d\n", count_iter);
 
     /* Print centroids */
     print_centroids(centroids, K, dim);
@@ -343,7 +344,7 @@ void print_centroids(double **centroids, int K, int dim) {
         
         /* seperate by new line adjecents centroids */
         printf("\n");
-        
+
     }
 }
 

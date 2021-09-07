@@ -47,10 +47,10 @@ int main(int argc, char *argv[])
     else
     {
         data_points = init_spk_datapoints(&graph, &K);
-        print_matrix(data_points, N, K);
+        print_matrix(data_points, N, K); printf("\n");
         centroids = calloc_matrix(K, K);
         init_centroids(data_points, K, K, centroids);
-        print_matrix(centroids, K, K);
+        print_matrix(centroids, K, K); printf("\n");
         kmeans(data_points, N, K, K, MAX_ITER_KMEANS, centroids);
 
         print_matrix(centroids, K, K);
@@ -851,8 +851,7 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
     {
         count_iter++;
 
-        for (i = 0; i < N; i++)
-        {
+        for (i = 0; i < N; i++) {
             data_point = data_points[i];
             cluster_index = find_closest_centroid(centroids, data_point, K, dim);
             add_datapoint_to_cluster(clusters, cluster_index, data_point, dim);
@@ -860,6 +859,7 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
 
         seen_changes = update_centroids(centroids, clusters, K, dim);
     }
+    printf("\ncount_iter=%d\n", count_iter);
 
     /* Free memory */
     free(clusters);
@@ -869,7 +869,6 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
 
 Cluster *init_clusters(int K, int dim)
 {
-    /* Variables Declarations */
     Cluster *clusters;
     int i;
     int *count;
@@ -879,8 +878,7 @@ Cluster *init_clusters(int K, int dim)
     clusters = calloc(K, sizeof(Cluster));
     assert(clusters != NULL);
 
-    for (i = 0; i < K; i++)
-    {
+    for (i = 0; i < K; i++) {
         /* Allocate array for each cluster */
         array = calloc(dim, sizeof(double));
         assert(array != NULL);
@@ -906,17 +904,14 @@ int find_closest_centroid(double **centroids, double *data_point, int K, int dim
 
     min_distance = compute_distance(centroids[0], data_point, dim);
     /* Loop throughtout the cluster */
-    for (i = 1; i < K; i++)
-    {
+    for (i = 1; i < K; i++) {
         curr_distance = compute_distance(centroids[i], data_point, dim);
         /* If we've found a closer centroid */
-        if (curr_distance < min_distance)
-        {
+        if (curr_distance < min_distance) {
             min_distance = curr_distance;
             min_index = i;
         }
     }
-
     return min_index;
 }
 
@@ -927,8 +922,7 @@ double compute_distance(double *u, double *v, int dim)
     int i = 0;
 
     /* Compute NORM^2 */
-    for (i = 0; i < dim; i++)
-    {
+    for (i = 0; i < dim; i++) {
         distance += (u[i] - v[i]) * (u[i] - v[i]);
     }
 
@@ -937,7 +931,6 @@ double compute_distance(double *u, double *v, int dim)
 
 int update_centroids(double **centroids, Cluster *clusters, int K, int dim)
 {
-    /* Variable Declarations */
     Cluster cluster;
     double *cluster_vector;
     int cluster_count;
@@ -947,22 +940,18 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim)
     int seen_changes = 0;
 
     /* Update centroids */
-    for (i = 0; i < K; i++)
-    {
+    for (i = 0; i < K; i++) {
         cluster = clusters[i];
         cluster_vector = cluster.vector_sum;
         cluster_count = cluster.count[0];
         centroid = centroids[i];
 
         /* If cluster not empty */
-        if (cluster_count > 0)
-        {
-            for (j = 0; j < dim; j++)
-            {
+        if (cluster_count > 0) {
+            for (j = 0; j < dim; j++) {
                 new_value = (cluster_vector[j] / cluster_count);
                 /* If there was a change */
-                if (centroid[j] != new_value)
-                {
+                if (centroid[j] != new_value) {
                     centroid[j] = new_value;
                     seen_changes = 1;
                 }
@@ -988,11 +977,9 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
     cluster_vector = cluster.vector_sum;
 
     /* Sum coordinate by coordinate */
-    for (i = 0; i < dim; i++)
-    {
+    for (i = 0; i < dim; i++) {
         cluster_vector[i] += data_point[i];
     }
-
     /* Raise count by one */
     cluster.count[0] += 1;
 }
@@ -1003,13 +990,10 @@ void init_centroids(double **data_points, int K, int dim, double **centroids)
     int i, j;
 
     /* Put the first K data points into centroids */
-    for (i = 0; i < K; i++)
-    {
-        for (j = 0; j < dim; j++)
-        {
+    for (i = 0; i < K; i++) {
+        for (j = 0; j < dim; j++) {
             centroids[i][j] = data_points[i][j];
         }
     }
-
     return;
 }
