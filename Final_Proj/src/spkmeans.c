@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     else
     {
         data_points = init_spk_datapoints(&graph, &K);
-
+        print_matrix(data_points, N, K);
         centroids = calloc_matrix(K, K);
         init_centroids(data_points, K, K, centroids);
 
