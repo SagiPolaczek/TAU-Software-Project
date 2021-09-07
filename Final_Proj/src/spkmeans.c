@@ -894,8 +894,7 @@ Cluster *init_clusters(int K, int dim)
         assert(array != NULL);
 
         /* Allocate pointer to count as a singleton */
-        count = calloc(1, sizeof(int));
-        assert(count != NULL);
+        count = 0;
 
         /* Attach */
         clusters[i].vector_sum = array;
