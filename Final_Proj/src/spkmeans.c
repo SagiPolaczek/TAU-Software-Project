@@ -710,11 +710,9 @@ double **calloc_matrix(int rows, int cols)
     ptr = calloc((rows * cols), sizeof(double));
     array = calloc(rows, sizeof(double *));
     my_assert(array != NULL || ptr != NULL);
-    for (i = 0; i < rows; i++)
-    {
-        array[i] = ptr + i * cols;
+    for (i = 0; i < rows; i++) {
+        array[i] = ptr + ( i * cols );
     }
-
     return array;
 }
 
@@ -861,6 +859,8 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
         }
 
         seen_changes = update_centroids(centroids, clusters, K, dim);
+        printf("\nUpdated centroids #%d:\n", count_iter);
+        print_matrix(centroids, K, K);
     }
     printf("\ncount_iter=%d\n", count_iter);
     printf("\n----\n");

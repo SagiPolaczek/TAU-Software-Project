@@ -98,8 +98,9 @@ int main(int argc, char *argv[])
             data_point = data_points[i];
             cluster_index = find_closest_centroid(centroids, data_point, K, dim);
             add_datapoint_to_cluster(clusters, cluster_index, data_point, dim);            
-        }
-
+        }   
+        printf("\nUpdated centroids #%d:\n", count_iter);
+        print_centroids(centroids, K, dim);
         seen_changes = update_centroids(centroids, clusters, K, dim);
     }
     printf("\ncount_iter=%d\n", count_iter);
