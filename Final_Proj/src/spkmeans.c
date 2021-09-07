@@ -953,7 +953,7 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim)
     for (i = 0; i < K; i++) {
         cluster = clusters[i];
         cluster_vector = cluster.vector_sum;
-        cluster_count = cluster.count[0];
+        cluster_count = cluster.count;
         centroid = centroids[i];
 
         /* If cluster not empty */
@@ -969,7 +969,7 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim)
                 cluster_vector[j] = 0;
             }
             /* Zerofy cluster's count */
-            cluster.count[0] = 0;
+            cluster.count = 0;
         }
     }
     return seen_changes;
