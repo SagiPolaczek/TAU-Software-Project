@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 
     while ((seen_changes == 1) && (count_iter < max_iter)) {
         printf("\ncount_iter=%d\n", count_iter);
-        print_matrix(centroids, K, K);
+        print_centroids(centroids, K, dim);
         printf("\n----\n");
         count_iter++;
         
