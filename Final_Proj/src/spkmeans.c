@@ -502,7 +502,9 @@ void print_transpose_matrix(double **mat, int rows, int cols)
                 printf(",");
             }
         }
-        printf("\n");
+        if (i != cols -1) {
+            printf("\n");
+        }
     }
 }
 
