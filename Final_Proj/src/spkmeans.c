@@ -785,7 +785,7 @@ void compute_by_goal(Graph *graph, goal goal)
         compute_jacobi(A, N, eigenvectors, eigenvalues);
 
         /* Print eigenvectors & eigenvalues */
-        print_matrix(&eigenvalues, 1, N);
+        print_matrix(&eigenvalues, 1, N); printf("\n");
 
         /* Transpose to print the eigenvectors as rows */
         print_transpose_matrix(eigenvectors, N, N);
