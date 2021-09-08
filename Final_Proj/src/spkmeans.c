@@ -23,8 +23,7 @@ int main(int argc, char *argv[])
     goal goal;
     Graph graph = {0};
 
-    if (argc != 4)
-    {
+    if (argc != 4) {
         printf("Only 3 Arguments are allowed.\n");
         exit(1);
     }
@@ -39,13 +38,11 @@ int main(int argc, char *argv[])
     N = graph.N;
 
     /* goal == wam / ddg / lnorm / jacobi */
-    if (goal != spk)
-    {
+    if (goal != spk) {
         compute_by_goal(&graph, goal);
     }
     /* goal == spk */
-    else
-    {
+    else {
         data_points = init_spk_datapoints(&graph, &K);
         centroids = calloc_matrix(K, K);
         init_centroids(data_points, K, K, centroids);
@@ -57,7 +54,6 @@ int main(int argc, char *argv[])
         free_matrix(centroids);
         free_matrix(data_points);
     }
-
     return 42;
 }
 
@@ -73,10 +69,7 @@ void read_data(Graph *graph, char *file_path)
     double **data_points;
     int i, j;
     FILE *ptr = fopen(file_path, "r");
-    if (ptr == NULL) {
-        printf(ERR_MSG);
-        exit(1);
-    }
+    my_assert(ptr != NULL);
 
     /* Scan data from the file to *count* dim and data_count */
     while (fscanf(ptr, "%lf%c", &value, &c) == 2)
@@ -99,10 +92,8 @@ void read_data(Graph *graph, char *file_path)
     data_points = calloc_matrix(data_count, dim);
 
     /* Put the data from the stream into the Array */
-    for (i = 0; i < data_count; i++)
-    {
-        for (j = 0; j < dim; j++)
-        {
+    for (i = 0; i < data_count; i++) {
+        for (j = 0; j < dim; j++) {
             fscanf(ptr, "%lf%c", &value, &c);
             data_points[i][j] = value;
         }
@@ -133,12 +124,10 @@ void compute_wam(Graph *graph)
     weights = calloc_matrix(N, N);
     graph->weights = weights;
 
-    for (i = 0; i < N; i++)
-    {
+    for (i = 0; i < N; i++) {
         v1 = vertices[i];
 
-        for (j = 0; j < i; j++)
-        {
+        for (j = 0; j < i; j++) {
             v2 = vertices[j];
             distance = compute_distance_spk(v1, v2, dim);
             weight = exp((-1) * (distance / 2));
@@ -283,19 +272,17 @@ void compute_jacobi(double **A, int N, double **eigenvectors, double *eigenvalue
 {
     int is_not_diag = 1;
     int i, j, r;
-    int max_row, max_col;
-    int sign_theta;
+    int max_row, max_col, sign_theta, iter_count;
     double theta, c, s, t;
     double max_entry, curr_entry;
     double **A_tag, **eigenvectors_deepcopy;
     double off_diff;
-    int iter_count;
     const double EPS = pow(10, -15);
 
     /* A_tag start as a deep copy of A */
     A_tag = calloc_matrix(N, N);
-    for (i = 0; i < N; i++){
-        for (j = 0; j < N; j++){
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
             A_tag[i][j] = A[i][j];
         }
     }
@@ -409,6 +396,12 @@ void update_A(double **A, double **A_tag, int N, int i, int j)
     }
 }
 
+/*
+    Compute the off diagonal difference as describe in the assignment.
+    NOTE:
+    We don't need to calculate all the entries because only the ones
+    that related to i,j are changed.
+*/
 double compute_off_diagonal_difference(double **A, double **A_tag, int N, int i, int j)
 {
     double off_diff = 0;
@@ -436,8 +429,7 @@ void init_idendity_matrix(int N, double** matrix)
 {
     int i,j;
     for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++)
-        {
+        for (j = 0; j < N; j++) {
             matrix[i][j] = (i == j);
         }
     }
@@ -523,21 +515,16 @@ void print_vector_as_matrix(double *diag, int n)
     double val;
     int i, j;
 
-    for (i = 0; i < n; i++)
-    {
-        for (j = 0; j < n; j++)
-        {
-            if (i == j)
-            {
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            if (i == j) {
                 val = diag[i];
             }
-            else
-            {
+            else {
                 val = 0;
             }
             printf("%.4f", val);
-            if (j < n - 1)
-            {
+            if (j < n - 1) {
                 printf(",");
             }
         }
@@ -546,16 +533,13 @@ void print_vector_as_matrix(double *diag, int n)
 }
 
 /*
-    Preforms steps 1-5 of the algorithm.
-    
-    TODO:
-    elaborate.
+    Preforms steps 1-5 of the algorithm in case the goal is SPK.
 */
 double **init_spk_datapoints(Graph *graph, int *K)
 {
     double **eigenvectors, *eigenvalues, *eigenvalues_sorted;
-    int N, i;
     double **U, **T;
+    int N, i;
 
     compute_wam(graph);
     compute_ddg(graph);
@@ -588,7 +572,6 @@ double **init_spk_datapoints(Graph *graph, int *K)
 
     /* Allocate memory for the U matrix. nxk. */
     U = calloc_matrix(N, (*K));
-
     form_U(U, eigenvectors, eigenvalues, eigenvalues_sorted, N, *K);
 
     /*  Form T from U by renormalizing each row to have the unit length */
@@ -603,20 +586,19 @@ double **init_spk_datapoints(Graph *graph, int *K)
 }
 
 /*
-    TODO:
-    elaborate.
+    Compute the heuristic gap as described in the assignment.
 */
 int get_heuristic(double *eigenvalues, int N)
 {
-    double max_delta = 0;
     int max_idx = ((N / 2) + 1 < N - 2) ? (N / 2) + 1 : N - 2; /* i is bounded as shown in the pdf */
     int i, K = 0;
-    double val1, val2, curr_delta;
+    double val1, val2, curr_delta, max_delta = 0;
 
     for (i = 0; i < max_idx; i++) {
         val1 = eigenvalues[i];
         val2 = eigenvalues[i + 1];
         curr_delta = val2 - val1;
+
         if (curr_delta > max_delta) {
             max_delta = curr_delta;
             K = i + 1;
@@ -641,8 +623,7 @@ void form_U(double **U, double **eigenvectors, double *eigenvalues, double *eige
         curr_sorted_val = eigenvalues_sorted[i];
         for (j = 0; j < N; j++) {
             curr_val = eigenvalues[j];
-            if (curr_val == curr_sorted_val)
-            {
+            if (curr_val == curr_sorted_val) {
                 /* place the j'th vector in the U's i'th column */
                 for (r = 0; r < N; r++) {
                     U[r][i] = eigenvectors[r][j]; /* assume the eigenvectors arrage as columns - DOUBLE CHECK IT */
@@ -744,7 +725,6 @@ void free_graph(Graph *graph, goal goal)
     if (goal == ddg) {
         return;
     }
-
     free_matrix(graph->lnorm);
 }
 
@@ -792,9 +772,7 @@ void compute_by_goal(Graph *graph, goal goal)
 
         free_matrix(eigenvectors);
         free(eigenvalues);
-
         free_graph(graph, jacobi);
-
         return;
     }
 
@@ -828,7 +806,9 @@ void compute_by_goal(Graph *graph, goal goal)
     }
 }
 
-/* Kmeans Function */
+/* 
+    Kmeans Function 
+*/
 void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **centroids)
 {
     int i;
@@ -883,15 +863,12 @@ Cluster *init_clusters(int K, int dim)
         clusters[i].vector_sum = array;
         clusters[i].count = count;
     }
-
     return clusters;
 }
 
 int find_closest_centroid(double **centroids, double *data_point, int K, int dim)
 {
-    /* Variables Declarations */
-    double min_distance;
-    double curr_distance = 0;
+    double min_distance, curr_distance = 0;
     int i, min_index;
 
     min_distance = compute_distance(centroids[0], data_point, dim);
@@ -925,12 +902,9 @@ double compute_distance(double *u, double *v, int dim)
 int update_centroids(double **centroids, Cluster *clusters, int K, int dim)
 {
     Cluster cluster;
-    double *cluster_vector;
-    int cluster_count;
-    double *centroid;
+    double *centroid, *cluster_vector;
     double new_value;
-    int i, j;
-    int seen_changes = 0;
+    int i, j, cluster_count, seen_changes = 0;
 
     /* Update centroids */
     for (i = 0; i < K; i++) {
@@ -961,7 +935,6 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim)
 void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
                               double *data_point, int dim)
 {
-    /* Variables Declarations */
     Cluster cluster;
     double *cluster_vector;
     int i;
@@ -979,7 +952,6 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
 
 void init_centroids(double **data_points, int K, int dim, double **centroids)
 {
-    /* Variables Declarations */
     int i, j;
 
     /* Put the first K data points into centroids */
