@@ -608,6 +608,7 @@ int get_heuristic(double *eigenvalues, int N)
         }
     }
     printf("Here 2\n");
+    printf("K is: %d\n", K);
     return K;
 }
 
