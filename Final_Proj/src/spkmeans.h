@@ -67,6 +67,7 @@ void my_assert(int status);
 void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **centroids);
 void init_centroids(double **data_points, int K, int dim, double **centroids);
 Cluster *init_clusters(int K, int dim);
+void free_clusters(Cluster *clusters, int dim);
 int find_closest_centroid(double **centroids, double *data_point, int K, int d);
 void add_datapoint_to_cluster(Cluster *clusters, int cluster_index, double *data_point, int dim);
 int update_centroids(double **centroids, Cluster *clusters, int K, int dim);

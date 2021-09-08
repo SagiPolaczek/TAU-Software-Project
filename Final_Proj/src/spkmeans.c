@@ -44,9 +44,6 @@ int main(int argc, char *argv[])
     /* goal == spk */
     else {
         data_points = init_spk_datapoints(&graph, &K);
-        printf("T:\n");
-        print_matrix(data_points, N, K);
-        printf("\nEnd of T\n");
         centroids = calloc_matrix(K, K);
         init_centroids(data_points, K, K, centroids);
         kmeans(data_points, N, K, K, MAX_ITER_KMEANS, centroids);
@@ -839,7 +836,7 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
     }
 
     /* Free memory */
-    free(clusters);
+    free_clusters(clusters, dim);
     return;
 }
 
@@ -868,6 +865,16 @@ Cluster *init_clusters(int K, int dim)
         clusters[i].count = count;
     }
     return clusters;
+}
+
+void free_clusters(Cluster *clusters, int dim)
+{
+    int i;
+    for (i = 0; i < dim; i++) {
+        free(clusters[i].vector_sum);
+        free(clusters[i].count);
+    }
+    free(clusters);
 }
 
 int find_closest_centroid(double **centroids, double *data_point, int K, int dim)
