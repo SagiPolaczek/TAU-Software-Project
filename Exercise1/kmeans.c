@@ -92,16 +92,20 @@ int main(int argc, char *argv[])
     seen_changes = 1;
 
     while ((seen_changes == 1) && (count_iter < max_iter)) {
+        printf("\ncount_iter=%d\n", count_iter);
+        print_matrix(centroids, K, K);
+        printf("\n----\n");
         count_iter++;
         
         for (i = 0; i < data_count; i++) {
             data_point = data_points[i];
             cluster_index = find_closest_centroid(centroids, data_point, K, dim);
-            add_datapoint_to_cluster(clusters, cluster_index, data_point, dim);            
+            add_datapoint_to_cluster(clusters, cluster_index, data_point, dim);
+            printf("data_point_index = %d ,cluster_index = %d\n", i, cluster_index);            
         }   
+        seen_changes = update_centroids(centroids, clusters, K, dim);
         printf("\nUpdated centroids #%d:\n", count_iter);
         print_centroids(centroids, K, dim);
-        seen_changes = update_centroids(centroids, clusters, K, dim);
     }
     printf("\ncount_iter=%d\n", count_iter);
 

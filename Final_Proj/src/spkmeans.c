@@ -830,10 +830,9 @@ void compute_by_goal(Graph *graph, goal goal)
     }
 }
 
-/* Main Function */
+/* Kmeans Function */
 void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **centroids)
 {
-    /* Variables Declarations */
     int i;
     int seen_changes, count_iter, cluster_index;
     double *data_point;
@@ -851,7 +850,6 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
     while ((seen_changes == 1) && (count_iter < max_iter))
     {
         printf("\ncount_iter=%d\n", count_iter);
-        printf("\n----\n");
         print_matrix(centroids, K, K);
         printf("\n----\n");
         count_iter++;
@@ -860,6 +858,7 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
             data_point = data_points[i];
             cluster_index = find_closest_centroid(centroids, data_point, K, dim);
             add_datapoint_to_cluster(clusters, cluster_index, data_point, dim);
+            printf("data_point_index = %d ,cluster_index = %d\n", i, cluster_index);
         }
 
         seen_changes = update_centroids(centroids, clusters, K, dim);
