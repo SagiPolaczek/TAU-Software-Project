@@ -260,7 +260,6 @@ int find_closest_centroid(double **centroids, double *data_point, int K, int dim
 
 
 double compute_distance(double *u, double *v, int dim) {
-    /* Variables Declarations */
     double distance = 0;
     int i = 0;
 
@@ -268,22 +267,17 @@ double compute_distance(double *u, double *v, int dim) {
     for (i = 0; i < dim; i++) {
         distance += (u[i] - v[i]) * (u[i] - v[i]);
     }
-
     return distance;
 }
 
 
 int update_centroids(double **centroids, Cluster *clusters, int K, int dim) {  
-    /* Variable Declarations */  
     Cluster cluster;
-    double *cluster_vector;
-    int cluster_count;
-    double *centroid;
+    double *centroid, *cluster_vector;
     double new_value;
     int i, j;
-    int seen_changes = 0;
+    int cluster_count, seen_changes = 0;
 
-    /* Update centroids */
     for(i = 0 ; i < K ; i++) {
         cluster = clusters[i];
         cluster_vector = cluster.vector_sum;
@@ -291,11 +285,11 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim) {
         centroid = centroids[i];
 
         /* If cluster not empty */
-        if(cluster_count > 0) {
-            for(j = 0 ; j < dim ; j++) {
+        if (cluster_count > 0) {
+            for (j = 0 ; j < dim ; j++) {
                 new_value = (cluster_vector[j] / cluster_count);
                 /* If there was a change */
-                if(centroid[j] != new_value) {
+                if (centroid[j] != new_value) {
                     centroid[j] = new_value;
                     seen_changes = 1;
                 }
@@ -311,7 +305,6 @@ int update_centroids(double **centroids, Cluster *clusters, int K, int dim) {
 
 void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
                                          double *data_point, int dim){
-    /* Variables Declarations */
     Cluster cluster;
     double *cluster_vector;
     int i;
@@ -319,18 +312,16 @@ void add_datapoint_to_cluster(Cluster *clusters, int cluster_index,
     cluster = clusters[cluster_index];
     cluster_vector = cluster.vector_sum;
 
-
     /* Sum coordinate by coordinate */
     for (i = 0; i < dim; i++) {
         cluster_vector[i] += data_point[i];
     }
-    
+
     /* Raise count by one */
     cluster.count[0] += 1;
 }
 
 void print_centroids(double **centroids, int K, int dim) {
-    /* Variables Declarations */
     double *centroid;
     double data_point;
     int i, j;

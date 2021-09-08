@@ -47,10 +47,8 @@ int main(int argc, char *argv[])
     else
     {
         data_points = init_spk_datapoints(&graph, &K);
-        print_matrix(data_points, N, K); printf("\n");
         centroids = calloc_matrix(K, K);
         init_centroids(data_points, K, K, centroids);
-        print_matrix(centroids, K, K); printf("\n");
         kmeans(data_points, N, K, K, MAX_ITER_KMEANS, centroids);
 
         print_matrix(centroids, K, K);
@@ -839,9 +837,6 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
     Cluster *clusters;
 
     clusters = init_clusters(K, dim);
-    printf("\nData point inside kmeans:\n");
-    print_matrix(data_points, N, K);
-    printf("\n---\n");
 
     /* Main Algorithm's Loop */
     count_iter = 0;
@@ -849,30 +844,18 @@ void kmeans(double **data_points, int N, int dim, int K, int max_iter, double **
 
     while ((seen_changes == 1) && (count_iter < max_iter))
     {
-        printf("\ncount_iter=%d\n", count_iter);
-        print_matrix(centroids, K, K);
-        printf("\n----\n");
         count_iter++;
 
         for (i = 0; i < N; i++) {
             data_point = data_points[i];
             cluster_index = find_closest_centroid(centroids, data_point, K, dim);
             add_datapoint_to_cluster(clusters, cluster_index, data_point, dim);
-            printf("data_point_index = %d ,cluster_index = %d\n", i, cluster_index);
         }
-
         seen_changes = update_centroids(centroids, clusters, K, dim);
-        printf("\nUpdated centroids #%d:\n", count_iter);
-        print_matrix(centroids, K, K);
     }
-    printf("\ncount_iter=%d\n", count_iter);
-    printf("\n----\n");
-    print_matrix(centroids, K, K);
-    printf("\n----\n");
 
     /* Free memory */
     free(clusters);
-
     return;
 }
 
@@ -922,7 +905,6 @@ int find_closest_centroid(double **centroids, double *data_point, int K, int dim
             min_index = i;
         }
     }
-    printf("min_distance = %f\n", min_distance);
     return min_index;
 }
 
