@@ -911,11 +911,11 @@ int find_closest_centroid(double **centroids, double *data_point, int K, int dim
     double curr_distance = 0;
     int i, min_index;
 
-    min_distance = compute_distance_spk(centroids[0], data_point, dim);
+    min_distance = compute_distance(centroids[0], data_point, dim);
     min_index = 0;
     /* Loop throughtout the cluster */
     for (i = 1; i < K; i++) {
-        curr_distance = compute_distance_spk(centroids[i], data_point, dim);
+        curr_distance = compute_distance(centroids[i], data_point, dim);
         /* If we've found a closer centroid */
         if (curr_distance < min_distance) {
             min_distance = curr_distance;
