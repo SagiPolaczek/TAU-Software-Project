@@ -595,7 +595,6 @@ int get_heuristic(double *eigenvalues, int N)
     int max_idx = (N / 2); /* i is bounded as shown in the pdf */
     int i, K = 0;
     double val1, val2, curr_delta, max_delta = 0;
-    printf("Here 1\n");
     for (i = 0; i < max_idx; i++) {
         val1 = eigenvalues[i];
         val2 = eigenvalues[i + 1];
@@ -606,8 +605,6 @@ int get_heuristic(double *eigenvalues, int N)
             K = i + 1;
         }
     }
-    printf("Here 2\n");
-    printf("K is: %d\n", K);
     return K;
 }
 
