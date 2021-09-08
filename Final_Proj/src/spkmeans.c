@@ -601,7 +601,7 @@ int get_heuristic(double *eigenvalues, int N)
 
         if (curr_delta > max_delta) {
             max_delta = curr_delta;
-            K = i;
+            K = i + 1;
         }
     }
     return K;
