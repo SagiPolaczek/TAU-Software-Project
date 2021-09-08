@@ -597,7 +597,7 @@ int get_heuristic(double *eigenvalues, int N)
     int i, K = 0;
     double val1, val2, curr_delta, max_delta = 0;
     printf("Here 1\n");
-    for (i = 1; i < max_idx; i++) {
+    for (i = 0; i < max_idx; i++) {
         val1 = eigenvalues[i];
         val2 = eigenvalues[i + 1];
         curr_delta = val2 - val1;
