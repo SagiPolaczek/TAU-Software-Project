@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
         data_points = init_spk_datapoints(&graph, &K);
         printf("T:\n");
         print_matrix(data_points, N, K);
-        printf("\n");
+        printf("\nEnd of T\n");
         centroids = calloc_matrix(K, K);
         init_centroids(data_points, K, K, centroids);
         kmeans(data_points, N, K, K, MAX_ITER_KMEANS, centroids);
