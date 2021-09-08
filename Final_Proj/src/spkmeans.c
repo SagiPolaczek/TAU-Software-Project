@@ -544,7 +544,7 @@ double **init_spk_datapoints(Graph *graph, int *K)
     compute_wam(graph);
     compute_ddg(graph);
     compute_lnorm(graph);
-    print_matrix(graph->vertices, graph->N, graph->N); printf("\n");
+    print_matrix(graph->vertices, graph->N, graph->dim); printf("\n");
     print_matrix(graph->lnorm, graph->N, graph->N); printf("\n");
     printf("N :%d", graph->N);
 
