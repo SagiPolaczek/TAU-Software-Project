@@ -590,18 +590,18 @@ double **init_spk_datapoints(Graph *graph, int *K)
 */
 int get_heuristic(double *eigenvalues, int N)
 {
-    int max_idx = ((N / 2) + 1 < N - 2) ? (N / 2) + 1 : N - 2; /* i is bounded as shown in the pdf */
+    int max_idx = ((N / 2) < N - 2) ? (N / 2) : N - 2; /* i is bounded as shown in the pdf */
     int i, K = 0;
     double val1, val2, curr_delta, max_delta = 0;
 
-    for (i = 0; i < max_idx; i++) {
+    for (i = 1; i < max_idx; i++) {
         val1 = eigenvalues[i];
         val2 = eigenvalues[i + 1];
         curr_delta = val2 - val1;
 
         if (curr_delta > max_delta) {
             max_delta = curr_delta;
-            K = i + 1;
+            K = i;
         }
     }
     return K;
