@@ -922,6 +922,7 @@ int find_closest_centroid(double **centroids, double *data_point, int K, int dim
             min_index = i;
         }
     }
+    printf("min_distance = %f\n", min_distance);
     return min_index;
 }
 
