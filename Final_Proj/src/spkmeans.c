@@ -546,8 +546,6 @@ double **init_spk_datapoints(Graph *graph, int *K)
     compute_wam(graph);
     compute_ddg(graph);
     compute_lnorm(graph);
-    printf("Data Points:\n");
-    print_matrix(graph->vertices, graph->N, graph->dim); printf("\n");
 
     /* Allocate memory for the eigenvectors & eigenvalues */
     N = graph->N;
