@@ -593,7 +593,7 @@ double **init_spk_datapoints(Graph *graph, int *K)
 */
 int get_heuristic(double *eigenvalues, int N)
 {
-    int max_idx = ((N / 2) < N - 2) ? (N / 2) : N - 2; /* i is bounded as shown in the pdf */
+    int max_idx = (N / 2); /* i is bounded as shown in the pdf */
     int i, K = 0;
     double val1, val2, curr_delta, max_delta = 0;
     printf("Here 1\n");
