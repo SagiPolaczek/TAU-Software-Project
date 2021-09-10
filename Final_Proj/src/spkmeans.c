@@ -558,7 +558,7 @@ double **init_spk_datapoints(Graph *graph, int *K)
         print_matrix(&eigenvalues, 1, N); printf("\n");
 
         /* Transpose to print the eigenvectors as rows */
-        print_transpose_matrix(eigenvectors, N, N);
+        print_matrix(eigenvectors, N, N); printf("\n");
 
 
     /* Deep copy the eigenvalues */
