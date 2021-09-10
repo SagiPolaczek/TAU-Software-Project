@@ -554,6 +554,13 @@ double **init_spk_datapoints(Graph *graph, int *K)
 
     compute_jacobi(graph->lnorm, N, eigenvectors, eigenvalues);
 
+        /* Print eigenvectors & eigenvalues */
+        print_matrix(&eigenvalues, 1, N); printf("\n");
+
+        /* Transpose to print the eigenvectors as rows */
+        print_transpose_matrix(eigenvectors, N, N);
+
+
     /* Deep copy the eigenvalues */
     eigenvalues_sorted = calloc_vector(N);
 
